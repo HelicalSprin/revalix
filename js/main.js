@@ -1,6 +1,6 @@
 
 /* ── CURSOR ── */
-const cursor = document.getElementById('cursor');
+if('ontouchstart' in window || navigator.maxTouchPoints > 0){ document.getElementById('cursor') && (document.getElementById('cursor').style.display='none'); document.getElementById('cursorRing') && (document.getElementById('cursorRing').style.display='none'); } const cursor = document.getElementById('cursor');
 const ring   = document.getElementById('cursorRing');
 document.addEventListener('mousemove', e => {
   cursor.style.transform = `translate(${e.clientX-4}px,${e.clientY-4}px)`;

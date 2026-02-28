@@ -571,3 +571,9 @@ nav { animation:fadeDown .8s ease both; }
   .treatment-card { grid-column: span 1 !important; }
   .tx-popup { display: none !important; }
 }
+
+/* Hero brand mobile */
+.hero-brand-mobile { display: none; }
+@media (max-width: 768px) {
+  .hero-brand-mobile { display: block; }
+}

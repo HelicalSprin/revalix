@@ -195,34 +195,54 @@
 /* MOBILE CRITICAL OVERRIDES */
 @media (max-width: 768px) {
   html, body { overflow-x: hidden !important; width: 100% !important; }
-  
-  /* Kill ALL floating tooltips on mobile */
-  .tx-popup, [id^="txp"] { 
-    display: none !important; 
-    visibility: hidden !important;
-    opacity: 0 !important;
-    pointer-events: none !important;
+
+  /* FIX 1: Reduce hero top space on mobile, show brand name */
+  .hero-content { padding: 72px 20px 48px !important; }
+  .hero-brand-mobile { 
+    display: block !important; 
+    font-family: 'Playfair Display', serif;
+    font-size: 28px; 
+    font-weight: 900;
+    color: #fff;
+    letter-spacing: 2px;
+    margin-bottom: 8px;
   }
-  
-  /* Treatments - single column, full width */
-  .treatments { padding: 0 !important; width: 100% !important; }
-  .treatments-header { padding: 40px 20px 28px !important; }
-  .treatments-grid { 
-    display: grid !important; 
-    grid-template-columns: 1fr !important;
-    grid-template-rows: auto !important;
+  .hero-eyebrow { margin-bottom: 16px !important; }
+
+  /* FIX 2: Modal full screen on mobile, scrollable */
+  .txm-backdrop { padding: 0 !important; align-items: flex-end !important; }
+  .txm-box { 
+    flex-direction: column-reverse !important; 
+    height: 92vh !important; 
+    max-height: 92vh !important;
     width: 100% !important;
-    gap: 2px !important;
+    border-radius: 20px 20px 0 0 !important;
+    overflow-y: auto !important;
   }
-  .treatment-card { 
+  .txm-body { 
+    padding: 24px 20px 32px !important; 
+    overflow-y: visible !important;
+  }
+  .txm-img { 
+    flex: 0 0 220px !important; 
     width: 100% !important; 
-    min-width: 0 !important;
-    max-width: 100% !important;
-    box-sizing: border-box !important;
-    padding: 28px 20px !important;
-    grid-column: span 1 !important;
-    position: relative !important;
+    height: 220px !important;
+    padding: 0 !important;
   }
+  .txm-img-frame { border-radius: 0 !important; }
+  .txm-close { top: 12px !important; right: 12px !important; z-index: 10 !important; }
+
+  /* FIX 3: Hide cursor on mobile */
+  .cursor, .cursor-ring { display: none !important; }
+
+  /* Kill tooltips */
+  .tx-popup, [id^="txp"] { display: none !important; opacity: 0 !important; pointer-events: none !important; }
+
+  /* Treatments single column */
+  .treatments { padding: 0 !important; }
+  .treatments-header { padding: 40px 20px 28px !important; }
+  .treatments-grid { display: grid !important; grid-template-columns: 1fr !important; width: 100% !important; gap: 2px !important; }
+  .treatment-card { width: 100% !important; min-width: 0 !important; max-width: 100% !important; box-sizing: border-box !important; padding: 28px 20px !important; grid-column: span 1 !important; }
 }
 </style>
 </head>
@@ -249,7 +269,8 @@
   <canvas id="hero-canvas"></canvas>
   <div class="hero-overlay"></div>
   <div class="hero-content">
-    <div class="hero-eyebrow">
+    <div class="hero-brand-mobile">Revalix</div>
+      <div class="hero-eyebrow">
       <div class="hero-eyebrow-line"></div>
       <span>Physiotherapy & Performance Clinic</span>
     </div>
