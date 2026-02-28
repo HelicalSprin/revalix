@@ -424,3 +424,18 @@ document.addEventListener('keydown',function(e){if(e.key==='Escape'){['txmBackdr
 })();
 function gsLbClose(e){if(e&&e.target.id!=='gsLb'&&!e.target.closest('.gslb-meta button'))return;document.getElementById('gsLb').classList.remove('open');document.body.style.overflow='';}
 
+
+/* ── MOBILE NAV ── */
+function toggleNav(){
+  var links = document.getElementById('navLinks');
+  if(links) links.classList.toggle('open');
+}
+// Close nav when a link is clicked
+document.addEventListener('DOMContentLoaded', function(){
+  var links = document.querySelectorAll('#navLinks a');
+  links.forEach(function(l){
+    l.addEventListener('click', function(){
+      document.getElementById('navLinks').classList.remove('open');
+    });
+  });
+});
