@@ -544,3 +544,25 @@ nav { animation:fadeDown .8s ease both; }
     text-align: center;
   }
 }
+
+
+/* ══ FORCE MOBILE FIX ══ */
+@media (max-width: 768px) {
+  html, body { overflow-x: hidden !important; max-width: 100vw !important; }
+  
+  .treatments { padding: 0 !important; }
+  .treatments-header { padding: 48px 20px 32px !important; }
+  .treatments-grid { 
+    display: grid !important; 
+    grid-template-columns: 1fr !important; 
+    gap: 2px !important;
+    width: 100% !important;
+  }
+  .treatment-card { 
+    width: 100% !important; 
+    min-width: 0 !important;
+    max-width: 100% !important;
+    box-sizing: border-box !important;
+    padding: 28px 20px !important;
+  }
+}
