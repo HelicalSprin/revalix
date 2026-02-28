@@ -1,0 +1,693 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+
+  <link rel="icon" type="image/png" href="images/favicon.png">
+  <link rel="apple-touch-icon" href="images/logo_nav.png">
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Revalix – Physiotherapy & Performance Clinic</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400&family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+/**
+ * GLTFLoader for three.js r128 — inline, no CDN needed
+ * ES6 class syntax required (THREE.Loader is a class in r128)
+ */
+(function () {
+  'use strict';
+
+  const BINARY_CHUNK_TYPES = { JSON: 0x4E4F534A, BIN: 0x004E4942 };
+
+  const COMPONENT_TYPES = {
+    5120: Int8Array,   5121: Uint8Array,
+    5122: Int16Array,  5123: Uint16Array,
+    5125: Uint32Array, 5126: Float32Array
+  };
+
+  const TYPE_SIZES = {
+    SCALAR:1, VEC2:2, VEC3:3, VEC4:4,
+    MAT2:4,   MAT3:9, MAT4:16
+  };
+
+  const ATTRIBUTES = {
+    POSITION:'position', NORMAL:'normal', TANGENT:'tangent',
+    TEXCOORD_0:'uv',     TEXCOORD_1:'uv2',
+    COLOR_0:'color',     WEIGHTS_0:'skinWeight', JOINTS_0:'skinIndex'
+  };
+
+  class GLTFLoader extends THREE.Loader {
+    constructor(manager) {
+      super(manager);
+    }
+
+    load(url, onLoad, onProgress, onError) {
+      const loader = new THREE.FileLoader(this.manager);
+      loader.setResponseType('arraybuffer');
+      loader.load(url,
+        data => { try { this.parse(data, '', onLoad, onError); } catch(e) { if(onError) onError(e); else console.error(e); } },
+        onProgress, onError
+      );
+    }
+
+    parse(data, path, onLoad, onError) {
+      try {
+        // Validate GLB magic
+        const magic = THREE.LoaderUtils.decodeText(new Uint8Array(data, 0, 4));
+        if (magic !== 'glTF') throw new Error('Not a valid GLB file (bad magic)');
+
+        const header = new DataView(data, 0, 12);
+        if (header.getUint32(4, true) < 2) throw new Error('GLTFLoader: GLB version < 2 not supported');
+
+        // Parse chunks
+        let json = null, body = null;
+        const fileLen = header.getUint32(8, true);
+        const chunkView = new DataView(data, 12);
+        let offset = 0;
+
+        while (offset < fileLen - 12) {
+          const cLen  = chunkView.getUint32(offset, true);     offset += 4;
+          const cType = chunkView.getUint32(offset, true);     offset += 4;
+
+          if (cType === BINARY_CHUNK_TYPES.JSON) {
+            json = JSON.parse(THREE.LoaderUtils.decodeText(new Uint8Array(data, 12 + offset, cLen)));
+          } else if (cType === BINARY_CHUNK_TYPES.BIN) {
+            body = data.slice(12 + offset, 12 + offset + cLen);
+          }
+          offset += cLen;
+        }
+
+        if (!json) throw new Error('GLTFLoader: No JSON chunk found');
+
+        onLoad(buildGLTF(json, body));
+      } catch(e) {
+        if (onError) onError(e); else console.error(e);
+      }
+    }
+  }
+
+  // ── Scene builder ─────────────────────────────────────────────────
+
+  function buildGLTF(json, body) {
+    const sceneDef = json.scenes[json.scene || 0];
+    const scene = new THREE.Group();
+    scene.name = sceneDef.name || 'Scene';
+    (sceneDef.nodes || []).forEach(i => scene.add(buildNode(i, json, body)));
+    return { scene, scenes:[scene], cameras:[], animations:[], asset: json.asset || {} };
+  }
+
+  function buildNode(idx, json, body) {
+    const def = json.nodes[idx];
+    const obj = def.mesh !== undefined
+      ? buildMesh(json.meshes[def.mesh], json, body)
+      : new THREE.Group();
+
+    obj.name = def.name || '';
+
+    if (def.matrix) {
+      obj.applyMatrix4(new THREE.Matrix4().fromArray(def.matrix));
+    } else {
+      if (def.translation) obj.position.fromArray(def.translation);
+      if (def.rotation)    obj.quaternion.fromArray(def.rotation);
+      if (def.scale)       obj.scale.fromArray(def.scale);
+    }
+
+    (def.children || []).forEach(i => obj.add(buildNode(i, json, body)));
+    return obj;
+  }
+
+  function buildMesh(def, json, body) {
+    const meshes = def.primitives.map(prim => {
+      const geo = buildGeometry(prim, json, body);
+      const mat = prim.material !== undefined
+        ? buildMaterial(json.materials[prim.material])
+        : new THREE.MeshStandardMaterial({ color: 0xcccccc });
+      const m = new THREE.Mesh(geo, mat);
+      m.name = def.name || '';
+      return m;
+    });
+
+    if (meshes.length === 1) return meshes[0];
+    const g = new THREE.Group();
+    meshes.forEach(m => g.add(m));
+    g.name = def.name || '';
+    return g;
+  }
+
+  function buildGeometry(prim, json, body) {
+    const geo = new THREE.BufferGeometry();
+
+    for (const [gltfName, accIdx] of Object.entries(prim.attributes)) {
+      const name = ATTRIBUTES[gltfName] || gltfName.toLowerCase();
+      geo.setAttribute(name, buildAccessor(json.accessors[accIdx], json, body));
+    }
+
+    if (prim.indices !== undefined) {
+      geo.setIndex(buildAccessor(json.accessors[prim.indices], json, body));
+    }
+
+    return geo;
+  }
+
+  function buildAccessor(acc, json, body) {
+    const itemSize   = TYPE_SIZES[acc.type];
+    const Arr        = COMPONENT_TYPES[acc.componentType];
+    const bv         = json.bufferViews[acc.bufferView];
+    const byteOffset = (bv.byteOffset || 0) + (acc.byteOffset || 0);
+    const byteStride = bv.byteStride;
+    const normalized = acc.normalized === true;
+    const count      = acc.count;
+
+    if (byteStride && byteStride !== itemSize * Arr.BYTES_PER_ELEMENT) {
+      // Interleaved buffer
+      const array = new Arr(body, bv.byteOffset || 0, count * byteStride / Arr.BYTES_PER_ELEMENT);
+      const ib    = new THREE.InterleavedBuffer(array, byteStride / Arr.BYTES_PER_ELEMENT);
+      return new THREE.InterleavedBufferAttribute(ib, itemSize, (acc.byteOffset || 0) % byteStride / Arr.BYTES_PER_ELEMENT, normalized);
+    }
+
+    return new THREE.BufferAttribute(new Arr(body, byteOffset, count * itemSize), itemSize, normalized);
+  }
+
+  function buildMaterial(def) {
+    const pbr = def.pbrMetallicRoughness || {};
+    const params = {
+      roughness: pbr.roughnessFactor !== undefined ? pbr.roughnessFactor : 1.0,
+      metalness: pbr.metallicFactor  !== undefined ? pbr.metallicFactor  : 1.0,
+    };
+    if (Array.isArray(pbr.baseColorFactor)) {
+      params.color   = new THREE.Color().fromArray(pbr.baseColorFactor);
+      params.opacity = pbr.baseColorFactor[3];
+      if (params.opacity < 1) params.transparent = true;
+    }
+    if (def.doubleSided)           params.side      = THREE.DoubleSide;
+    if (def.alphaMode === 'BLEND') { params.transparent = true; params.depthWrite = false; }
+    if (def.alphaMode === 'MASK')  params.alphaTest  = def.alphaCutoff !== undefined ? def.alphaCutoff : 0.5;
+    return new THREE.MeshStandardMaterial(params);
+  }
+
+  // Register on THREE namespace
+  THREE.GLTFLoader = GLTFLoader;
+
+})();
+</script>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<div class="cursor" id="cursor"></div>
+<div class="cursor-ring" id="cursorRing"></div>
+
+<!-- ── NAV ── -->
+<nav id="navbar">
+  <a href="#" class="nav-logo"><img src="images/logo_team.png" alt="Revalix" style="height:42px;width:auto;display:block"/></a>
+  <div class="nav-links">
+    <a href="#treatments">Treatments</a>
+    <a href="#technology">Technology</a>
+    <a href="#team">Team</a><a href="#gallery">Gallery</a>
+    <a href="#testimonials">Reviews</a>
+    <a href="#contact" class="btn-nav">Book Appointment</a>
+  </div>
+</nav>
+
+<!-- ── HERO ── -->
+<section class="hero" id="home">
+  <canvas id="hero-canvas"></canvas>
+  <div class="hero-overlay"></div>
+  <div class="hero-content">
+    <div class="hero-eyebrow">
+      <div class="hero-eyebrow-line"></div>
+      <span>Physiotherapy & Performance Clinic</span>
+    </div>
+    <h1>Restore.<br><span class="line-accent">Rebuild.</span><br>Perform.</h1>
+    <p>Elite physiotherapy and rehabilitation care — where evidence-based science meets compassionate, personalised treatment for every stage of your recovery.</p>
+    <div class="hero-ctas">
+      <a href="#contact" class="btn-primary-hero">Book Free Consultation</a>
+      <a href="#treatments" class="btn-outline-hero">Explore Treatments</a>
+    </div>
+  </div>
+  
+  <div class="hero-right">
+    <div class="hero-services">
+      <div class="hero-dot hero-dot-1"></div>
+      <div class="hero-dot hero-dot-2"></div>
+      <div class="hero-dot hero-dot-3"></div>
+      <div class="hsvc"><div class="hsvc-icon" style="background:rgba(196,98,45,.15)"><svg viewBox="0 0 24 24" fill="none" stroke="#e07040" stroke-width="1.6"><path d="M9 12l2 2 4-4"/><path d="M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0z"/></svg></div><div><div class="hsvc-name">Sports Rehabilitation</div><div class="hsvc-desc">Return to peak performance</div></div></div>
+      <div class="hsvc"><div class="hsvc-icon" style="background:rgba(41,121,213,.15)"><svg viewBox="0 0 24 24" fill="none" stroke="#5b9bd5" stroke-width="1.6"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></div><div><div class="hsvc-name">Post-Surgery Recovery</div><div class="hsvc-desc">Guided step-by-step rehab</div></div></div>
+      <div class="hsvc"><div class="hsvc-icon" style="background:rgba(26,160,184,.15)"><svg viewBox="0 0 24 24" fill="none" stroke="#1aa0b8" stroke-width="1.6"><path d="M12 2a7 7 0 0 1 7 7c0 4-3 7-7 13C9 16 5 13 5 9a7 7 0 0 1 7-7z"/><circle cx="12" cy="9" r="2.5"/></svg></div><div><div class="hsvc-name">Spinal &amp; Back Care</div><div class="hsvc-desc">Posture, disc &amp; nerve therapy</div></div></div>
+      <div class="hsvc"><div class="hsvc-icon" style="background:rgba(212,160,16,.15)"><svg viewBox="0 0 24 24" fill="none" stroke="#d4a010" stroke-width="1.6"><path d="M4.5 6.5h15M4.5 17.5h15M2 10h3v4H2zM19 10h3v4h-3z"/></svg></div><div><div class="hsvc-name">Strength &amp; Conditioning</div><div class="hsvc-desc">Evidence-based performance</div></div></div>
+      <div class="hsvc"><div class="hsvc-icon" style="background:rgba(196,98,45,.12)"><svg viewBox="0 0 24 24" fill="none" stroke="#e07040" stroke-width="1.6"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg></div><div><div class="hsvc-name">Women's Health</div><div class="hsvc-desc">Pelvic floor &amp; pre/postnatal</div></div></div>
+    </div>
+  </div>
+
+  
+  <div class="hero-right">
+    <div class="hero-services">
+      <div class="hero-dot hero-dot-1"></div><div class="hero-dot hero-dot-2"></div><div class="hero-dot hero-dot-3"></div>
+      <div class="hsvc"><div class="hsvc-icon" style="background:rgba(196,98,45,.15)"><svg viewBox="0 0 24 24" fill="none" stroke="#e07040" stroke-width="1.6"><path d="M9 12l2 2 4-4"/><path d="M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0z"/></svg></div><div><div class="hsvc-name">Sports Rehabilitation</div><div class="hsvc-desc">Return to peak performance</div></div></div>
+      <div class="hsvc"><div class="hsvc-icon" style="background:rgba(41,121,213,.15)"><svg viewBox="0 0 24 24" fill="none" stroke="#5b9bd5" stroke-width="1.6"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></div><div><div class="hsvc-name">Post-Surgery Recovery</div><div class="hsvc-desc">Guided step-by-step rehab</div></div></div>
+      <div class="hsvc"><div class="hsvc-icon" style="background:rgba(26,160,184,.15)"><svg viewBox="0 0 24 24" fill="none" stroke="#1aa0b8" stroke-width="1.6"><path d="M12 2a7 7 0 0 1 7 7c0 4-3 7-7 13C9 16 5 13 5 9a7 7 0 0 1 7-7z"/><circle cx="12" cy="9" r="2.5"/></svg></div><div><div class="hsvc-name">Spinal &amp; Back Care</div><div class="hsvc-desc">Posture, disc &amp; nerve therapy</div></div></div>
+      <div class="hsvc"><div class="hsvc-icon" style="background:rgba(212,160,16,.15)"><svg viewBox="0 0 24 24" fill="none" stroke="#d4a010" stroke-width="1.6"><path d="M4.5 6.5h15M4.5 17.5h15M2 10h3v4H2zM19 10h3v4h-3z"/></svg></div><div><div class="hsvc-name">Strength &amp; Conditioning</div><div class="hsvc-desc">Evidence-based performance</div></div></div>
+      <div class="hsvc"><div class="hsvc-icon" style="background:rgba(196,98,45,.12)"><svg viewBox="0 0 24 24" fill="none" stroke="#e07040" stroke-width="1.6"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg></div><div><div class="hsvc-name">Women's Health</div><div class="hsvc-desc">Pelvic floor &amp; pre/postnatal</div></div></div>
+    </div>
+  </div>
+  <div class="scroll-hint"><div class="scroll-line"></div><span>Scroll to explore</span></div>
+</section>
+
+<!-- ── TREATMENTS ── -->
+<section class="treatments" id="treatments">
+  <div class="treatments-header">
+    <div>
+      <div class="section-label reveal"><div class="section-label-line"></div><span>What We Provide</span></div>
+      <h2 class="section-title reveal">Our <em>Specialities</em></h2>
+    </div>
+    <p class="section-sub reveal" style="max-width:300px;">Seven focused disciplines, one goal — your complete recovery and peak performance.</p>
+  </div>
+  <div class="treatments-grid">
+<div class="treatment-card reveal" onmouseenter="showTxP(event,'txp01')" onmouseleave="hideTxP('txp01')">
+      <div class="treatment-num">01</div>
+      <div class="treatment-icon-wrap"><svg viewBox="0 0 24 24"><circle cx="12" cy="5" r="2"/><path d="M12 7v5l3 3"/><path d="M8 21c0-4 2-6 4-6s4 2 4 6"/><path d="M5 12h3M16 12h3"/></svg></div>
+      <div class="treatment-title">Orthopedic</div>
+      <div class="treatment-desc">Rehabilitation of musculoskeletal conditions — joints, bones, muscles, ligaments and tendons.</div>
+      <span class="treatment-link" onclick="openTxModal('01')" style="cursor:pointer">Learn more →</span>
+    </div>
+    <div class="tx-popup" id="txp01" onmouseenter="keepTxP('txp01')" onmouseleave="hideTxP('txp01')">
+      <div class="tx-popup-img"><div class="tx-popup-img-bg" style="background:linear-gradient(135deg,rgba(196,98,45,.2),rgba(10,20,45,.95))"></div><svg viewBox="0 0 24 24" fill="none" stroke="#c4622d" stroke-width="1.2" width="52" height="52" style="position:relative;z-index:1;opacity:.55"><circle cx="12" cy="5" r="2"/><path d="M12 7v5l3 3"/><path d="M8 21c0-4 2-6 4-6s4 2 4 6"/><path d="M5 12h3M16 12h3"/></svg></div>
+      <div class="tx-popup-body">
+        <div class="tx-popup-tag">Speciality 01</div>
+        <div class="tx-popup-title">Orthopedic</div>
+        <div class="tx-popup-desc">Our orthopedic team restores movement and strength after injury, surgery or degenerative conditions using manual therapy, targeted exercise and the latest technology.</div>
+        <ul class="tx-popup-points"><li>ACL & ligament reconstruction</li><li>Joint replacement rehab</li><li>Rotator cuff & shoulder</li><li>Fracture & bone healing</li><li>Tendinopathy & bursitis</li></ul>
+        <a href="#contact" class="tx-popup-cta" style="color:#c4622d">Book a consultation →</a>
+      </div>
+    </div>
+<div class="treatment-card reveal" onmouseenter="showTxP(event,'txp02')" onmouseleave="hideTxP('txp02')">
+      <div class="treatment-num">02</div>
+      <div class="treatment-icon-wrap"><svg viewBox="0 0 24 24"><path d="M9.5 2c0 2.5 1.5 4.5 3 5.5C11 9 9.5 11 9.5 14s1.5 4.5 3 5.5"/><path d="M14.5 2c0 2.5-1.5 4.5-3 5.5C13 9 14.5 11 14.5 14s-1.5 4.5-3 5.5"/><line x1="12" y1="19.5" x2="12" y2="22"/></svg></div>
+      <div class="treatment-title">Neurology</div>
+      <div class="treatment-desc">Rehab for stroke, Parkinson's, MS and nerve injuries — restoring motor function and independence.</div>
+      <span class="treatment-link" onclick="openTxModal('02')" style="cursor:pointer">Learn more →</span>
+    </div>
+    <div class="tx-popup" id="txp02" onmouseenter="keepTxP('txp02')" onmouseleave="hideTxP('txp02')">
+      <div class="tx-popup-img"><div class="tx-popup-img-bg" style="background:linear-gradient(135deg,rgba(41,121,213,.2),rgba(10,20,45,.95))"></div><svg viewBox="0 0 24 24" fill="none" stroke="#2979d5" stroke-width="1.2" width="52" height="52" style="position:relative;z-index:1;opacity:.55"><path d="M9.5 2c0 2.5 1.5 4.5 3 5.5C11 9 9.5 11 9.5 14s1.5 4.5 3 5.5"/><path d="M14.5 2c0 2.5-1.5 4.5-3 5.5C13 9 14.5 11 14.5 14s-1.5 4.5-3 5.5"/><line x1="12" y1="19.5" x2="12" y2="22"/></svg></div>
+      <div class="tx-popup-body">
+        <div class="tx-popup-tag">Speciality 02</div>
+        <div class="tx-popup-title">Neurology</div>
+        <div class="tx-popup-desc">Neurological physiotherapy retrains the brain and nervous system. We work intensively with patients to regain movement, balance and independence through neuroplasticity-driven rehab.</div>
+        <ul class="tx-popup-points"><li>Stroke rehabilitation</li><li>Parkinson's disease</li><li>Multiple sclerosis</li><li>Peripheral nerve injury</li><li>Vestibular & balance disorders</li></ul>
+        <a href="#contact" class="tx-popup-cta" style="color:#2979d5">Book a consultation →</a>
+      </div>
+    </div>
+<div class="treatment-card reveal" onmouseenter="showTxP(event,'txp03')" onmouseleave="hideTxP('txp03')">
+      <div class="treatment-num">03</div>
+      <div class="treatment-icon-wrap"><svg viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg></div>
+      <div class="treatment-title">Cardiorespiratory</div>
+      <div class="treatment-desc">Pulmonary and cardiac rehab to improve breathing, endurance and cardiovascular health.</div>
+      <span class="treatment-link" onclick="openTxModal('03')" style="cursor:pointer">Learn more →</span>
+    </div>
+    <div class="tx-popup" id="txp03" onmouseenter="keepTxP('txp03')" onmouseleave="hideTxP('txp03')">
+      <div class="tx-popup-img"><div class="tx-popup-img-bg" style="background:linear-gradient(135deg,rgba(26,160,184,.2),rgba(10,20,45,.95))"></div><svg viewBox="0 0 24 24" fill="none" stroke="#1aa0b8" stroke-width="1.2" width="52" height="52" style="position:relative;z-index:1;opacity:.55"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg></div>
+      <div class="tx-popup-body">
+        <div class="tx-popup-tag">Speciality 03</div>
+        <div class="tx-popup-title">Cardiorespiratory</div>
+        <div class="tx-popup-desc">Specialised cardiac and pulmonary rehab helping patients recover from heart conditions, surgery and respiratory diseases — safely rebuilding fitness and quality of life.</div>
+        <ul class="tx-popup-points"><li>Post-cardiac surgery rehab</li><li>COPD & asthma management</li><li>Breathlessness & fatigue</li><li>Long COVID recovery</li><li>Cardiac fitness programmes</li></ul>
+        <a href="#contact" class="tx-popup-cta" style="color:#1aa0b8">Book a consultation →</a>
+      </div>
+    </div>
+<div class="treatment-card reveal" onmouseenter="showTxP(event,'txp04')" onmouseleave="hideTxP('txp04')">
+      <div class="treatment-num">04</div>
+      <div class="treatment-icon-wrap"><svg viewBox="0 0 24 24"><path d="M13 10V3L4 14h7v7l9-11h-7z"/></svg></div>
+      <div class="treatment-title">Elite Sports</div>
+      <div class="treatment-desc">High-performance injury management and return-to-sport protocols for competitive athletes.</div>
+      <span class="treatment-link" onclick="openTxModal('04')" style="cursor:pointer">Learn more →</span>
+    </div>
+    <div class="tx-popup" id="txp04" onmouseenter="keepTxP('txp04')" onmouseleave="hideTxP('txp04')">
+      <div class="tx-popup-img"><div class="tx-popup-img-bg" style="background:linear-gradient(135deg,rgba(212,160,16,.2),rgba(10,20,45,.95))"></div><svg viewBox="0 0 24 24" fill="none" stroke="#d4a010" stroke-width="1.2" width="52" height="52" style="position:relative;z-index:1;opacity:.55"><path d="M13 10V3L4 14h7v7l9-11h-7z"/></svg></div>
+      <div class="tx-popup-body">
+        <div class="tx-popup-tag">Speciality 04</div>
+        <div class="tx-popup-title">Elite Sports</div>
+        <div class="tx-popup-desc">Our sports physiotherapists manage acute injuries, optimise recovery and implement return-to-sport protocols — keeping elite and semi-elite athletes competing at their best.</div>
+        <ul class="tx-popup-points"><li>Return-to-sport testing</li><li>Acute sports injury care</li><li>Biomechanical analysis</li><li>In-season maintenance</li><li>Athlete load management</li></ul>
+        <a href="#contact" class="tx-popup-cta" style="color:#d4a010">Book a consultation →</a>
+      </div>
+    </div>
+<div class="treatment-card reveal" onmouseenter="showTxP(event,'txp05')" onmouseleave="hideTxP('txp05')">
+      <div class="treatment-num">05</div>
+      <div class="treatment-icon-wrap"><svg viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg></div>
+      <div class="treatment-title">Performance Rehab</div>
+      <div class="treatment-desc">Bridging the gap between injury recovery and full athletic performance through functional training.</div>
+      <span class="treatment-link" onclick="openTxModal('05')" style="cursor:pointer">Learn more →</span>
+    </div>
+    <div class="tx-popup" id="txp05" onmouseenter="keepTxP('txp05')" onmouseleave="hideTxP('txp05')">
+      <div class="tx-popup-img"><div class="tx-popup-img-bg" style="background:linear-gradient(135deg,rgba(196,98,45,.18),rgba(10,20,45,.95))"></div><svg viewBox="0 0 24 24" fill="none" stroke="#c4622d" stroke-width="1.2" width="52" height="52" style="position:relative;z-index:1;opacity:.55"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg></div>
+      <div class="tx-popup-body">
+        <div class="tx-popup-tag">Speciality 05</div>
+        <div class="tx-popup-title">Performance Rehab</div>
+        <div class="tx-popup-desc">Performance rehab bridges clinical recovery and full sport performance. Individualised programmes rebuild strength, power and agility safely and progressively.</div>
+        <ul class="tx-popup-points"><li>Functional movement screening</li><li>Strength & power development</li><li>Agility & plyometric rehab</li><li>Injury prevention programs</li><li>Sport-specific conditioning</li></ul>
+        <a href="#contact" class="tx-popup-cta" style="color:#c4622d">Book a consultation →</a>
+      </div>
+    </div>
+<div class="treatment-card reveal" onmouseenter="showTxP(event,'txp06')" onmouseleave="hideTxP('txp06')">
+      <div class="treatment-num">06</div>
+      <div class="treatment-icon-wrap"><svg viewBox="0 0 24 24"><circle cx="12" cy="7" r="4"/><path d="M12 11v10"/><path d="M8 15l4 4 4-4"/></svg></div>
+      <div class="treatment-title">Pediatric Rehab</div>
+      <div class="treatment-desc">Child-centred physiotherapy for developmental delays, cerebral palsy and paediatric orthopaedic conditions.</div>
+      <span class="treatment-link" onclick="openTxModal('06')" style="cursor:pointer">Learn more →</span>
+    </div>
+    <div class="tx-popup" id="txp06" onmouseenter="keepTxP('txp06')" onmouseleave="hideTxP('txp06')">
+      <div class="tx-popup-img"><div class="tx-popup-img-bg" style="background:linear-gradient(135deg,rgba(41,121,213,.18),rgba(10,20,45,.95))"></div><svg viewBox="0 0 24 24" fill="none" stroke="#2979d5" stroke-width="1.2" width="52" height="52" style="position:relative;z-index:1;opacity:.55"><circle cx="12" cy="7" r="4"/><path d="M12 11v10"/><path d="M8 15l4 4 4-4"/></svg></div>
+      <div class="tx-popup-body">
+        <div class="tx-popup-tag">Speciality 06</div>
+        <div class="tx-popup-title">Pediatric Rehab</div>
+        <div class="tx-popup-desc">Play-based, child-centred techniques improve movement, strength and coordination — working closely with families and schools to support each child's unique journey.</div>
+        <ul class="tx-popup-points"><li>Cerebral palsy & tone management</li><li>Developmental delay</li><li>Paediatric orthopaedics</li><li>Scoliosis management</li><li>Sports injuries in youth</li></ul>
+        <a href="#contact" class="tx-popup-cta" style="color:#2979d5">Book a consultation →</a>
+      </div>
+    </div>
+<div class="treatment-card reveal" style="grid-column:span 2;" onmouseenter="showTxP(event,'txp07')" onmouseleave="hideTxP('txp07')">
+      <div class="treatment-num">07</div>
+      <div class="treatment-icon-wrap"><svg viewBox="0 0 24 24"><path d="M6 4v16M18 4v16M3 8h3M18 8h3M3 16h3M18 16h3M6 12h12"/></svg></div>
+      <div class="treatment-title">Strength & Conditioning</div>
+      <div class="treatment-desc">Evidence-based strength and conditioning programmes that build resilience, prevent re-injury and optimise long-term physical health.</div>
+      <span class="treatment-link" onclick="openTxModal('07')" style="cursor:pointer">Learn more →</span>
+    </div>
+    <div class="tx-popup" id="txp07" onmouseenter="keepTxP('txp07')" onmouseleave="hideTxP('txp07')">
+      <div class="tx-popup-img"><div class="tx-popup-img-bg" style="background:linear-gradient(135deg,rgba(26,160,184,.18),rgba(10,20,45,.95))"></div><svg viewBox="0 0 24 24" fill="none" stroke="#1aa0b8" stroke-width="1.2" width="52" height="52" style="position:relative;z-index:1;opacity:.55"><path d="M6 4v16M18 4v16M3 8h3M18 8h3M3 16h3M18 16h3M6 12h12"/></svg></div>
+      <div class="tx-popup-body">
+        <div class="tx-popup-tag">Speciality 07</div>
+        <div class="tx-popup-title">Strength & Conditioning</div>
+        <div class="tx-popup-desc">Open to all — from post-rehab patients consolidating recovery to athletes pushing peak performance. Every programme is individually prescribed and therapist-led.</div>
+        <ul class="tx-popup-points"><li>Post-rehab strength programs</li><li>Injury prevention & screening</li><li>Olympic & powerlifting support</li><li>Gym-based rehab</li><li>Long-term athletic development</li></ul>
+        <a href="#contact" class="tx-popup-cta" style="color:#1aa0b8">Book a consultation →</a>
+      </div>
+    </div>
+</div>
+</section>
+
+<!-- ── BODY MAP 3D ── -->
+<div class="bodymap-section" id="technology">
+  <div class="bodymap-left">
+    <div class="section-label"><div class="section-label-line"></div><span>Treatment Areas</span></div>
+    <h2 class="section-title">Your Body.<br><em>Our Expertise.</em></h2>
+    <p class="bodymap-sub">Drag to rotate. Navigate each region to explore conditions we treat.</p>
+    <div class="bodymap-nav">
+      <button class="bm-arrow" id="bmPrev">&#8592;</button>
+      <div class="bm-dots" id="bmDots"></div>
+      <button class="bm-arrow" id="bmNext">&#8594;</button>
+    </div>
+    <div class="bm-info-panel">
+      <div class="bm-region-name" id="bmRegionName"></div>
+      <div class="bm-region-desc"  id="bmRegionDesc"></div>
+      <div class="bm-points-list"  id="bmPointsList"></div>
+    </div>
+  </div>
+
+  <div class="bodymap-stage">
+    <div class="bm-slide-badge" id="bmBadge"></div>
+
+    <div class="bm-loading" id="bmLoading">
+      <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
+        <circle cx="16" cy="16" r="14" stroke="rgba(255,255,255,.1)" stroke-width="2"/>
+        <path d="M16 2 A14 14 0 0 1 30 16" stroke="#c4622d" stroke-width="2" stroke-linecap="round">
+          <animateTransform attributeName="transform" type="rotate" from="0 16 16" to="360 16 16" dur="1s" repeatCount="indefinite"/>
+        </path>
+      </svg>
+      <div class="bm-loading-bar-wrap"><div class="bm-loading-bar" id="bmLoadBar"></div></div>
+      <div class="bm-loading-text" id="bmLoadText">Loading model&hellip;</div>
+    </div>
+
+    <div class="bm-3d-wrap" id="bm3dWrap">
+      <canvas class="bm-3d-canvas" id="bm3dCanvas"></canvas>
+    </div>
+
+    <div class="bm-hint">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <circle cx="12" cy="8" r="4"/><path d="M8 12v8M16 12v8M4 20h16"/>
+      </svg>
+      drag to rotate &nbsp;·&nbsp; scroll to zoom
+    </div>
+
+    <div class="bm-credits">
+      <a href="https://poly.pizza/m/qbDLeTtb8K" target="_blank" rel="noopener">Character Base</a>
+      by <a href="https://poly.pizza/u/madtrollstudio" target="_blank" rel="noopener">madtrollstudio</a>
+      [<a href="https://creativecommons.org/licenses/by/3.0/" target="_blank" rel="noopener">CC-BY</a>]
+      via <a href="https://poly.pizza" target="_blank" rel="noopener">Poly Pizza</a>
+    </div>
+  </div>
+</div>
+<!-- ── TEAM ── -->
+<section class="team" id="team">
+  <div class="section-label reveal"><div class="section-label-line"></div><span>The Team</span></div>
+  <h2 class="section-title reveal">Meet the People<br>Behind Your <em>Recovery</em></h2>
+
+  <div class="team-inner">
+    <!-- ★ HOW TO ADD YOUR PHOTO:
+         1. Put your group photo (e.g. team.jpg) in the same folder as this HTML file
+         2. Change the src below from the Unsplash URL to just:  src="team.jpg"
+    -->
+    <div class="team-photo-wrap reveal">
+      <img
+        class="team-group-img"
+        src="images/gallery_clinic.jpg"
+        alt="The Revalix Team"
+      >
+      <div class="team-photo-overlay"></div>
+      <div class="team-photo-label">The Revalix Team</div>
+    </div>
+
+    <div class="team-info-panel reveal">
+      <div class="team-tagline">We at Revalix are united by<br><em>one purpose — getting you better.</em></div>
+      <p class="team-desc">We at Revalix bring together physiotherapists, rehabilitation specialists and performance coaches who share a single mission: delivering care that is both clinically excellent and deeply personal. Every treatment plan is built around you — your body, your goals, your recovery.</p>
+      
+      <div class="team-specialties">
+        <span class="specialty-tag">Orthopedic</span>
+        <span class="specialty-tag">Neurology</span>
+        <span class="specialty-tag">Cardiorespiratory</span>
+        <span class="specialty-tag">Elite Sports</span>
+        <span class="specialty-tag">Performance Rehab</span>
+        <span class="specialty-tag">Pediatric</span>
+        <span class="specialty-tag">S&amp;C</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── GALLERY ── -->
+<section id="gallery" class="gallery-section">
+  <div class="gs-head">
+    <div class="section-label"><div class="section-label-line"></div><span>Gallery</span></div>
+    <h2 class="section-title">Inside <em>Revalix.</em></h2>
+  </div>
+  <div class="gs-strip" id="gsStrip">
+      <div class="gc" data-label="Revalix Clinic" data-sub="Our state-of-the-art facility">
+        <img src="images/gallery_rehab_suite.jpg" alt="Revalix Clinic">
+        <div class="gc-ov"><div class="gc-lbl">Revalix Clinic</div><div class="gc-sub">Our state-of-the-art facility</div></div>
+      </div>
+      <div class="gc" data-label="Rehabilitation Suite" data-sub="Stair & parallel bar rehab">
+        <img src="images/gallery_treatment_room.jpg" alt="Rehabilitation Suite">
+        <div class="gc-ov"><div class="gc-lbl">Rehabilitation Suite</div><div class="gc-sub">Stair & parallel bar rehab</div></div>
+      </div>
+      <div class="gc" data-label="Treatment Room" data-sub="Electrotherapy & manual therapy">
+        <img src="images/gallery_perf_lab.jpg" alt="Treatment Room">
+        <div class="gc-ov"><div class="gc-lbl">Treatment Room</div><div class="gc-sub">Electrotherapy & manual therapy</div></div>
+      </div>
+      <div class="gc" data-label="Performance Lab" data-sub="Strength & conditioning equipment">
+        <img src="images/gallery_agility.jpg" alt="Performance Lab">
+        <div class="gc-ov"><div class="gc-lbl">Performance Lab</div><div class="gc-sub">Strength & conditioning equipment</div></div>
+      </div>
+      <div class="gc" data-label="Agility Training" data-sub="Performance rehab in action">
+        <img src="images/gallery_sports.jpg" alt="Agility Training">
+        <div class="gc-ov"><div class="gc-lbl">Agility Training</div><div class="gc-sub">Performance rehab in action</div></div>
+      </div>
+      <div class="gc" data-label="Sports Rehab" data-sub="Return-to-sport training">
+        <img src="images/gallery_footwork.jpg" alt="Sports Rehab">
+        <div class="gc-ov"><div class="gc-lbl">Sports Rehab</div><div class="gc-sub">Return-to-sport training</div></div>
+      </div>
+      <div class="gc" data-label="Footwork Training" data-sub="Precision footwork drills">
+        <img src="images/gallery_manual_therapy.jpg" alt="Footwork Training">
+        <div class="gc-ov"><div class="gc-lbl">Footwork Training</div><div class="gc-sub">Precision footwork drills</div></div>
+      </div>
+      <div class="gc" data-label="Manual Therapy" data-sub="Hands-on treatment sessions">
+        <img src="images/gallery_resistance.jpg" alt="Manual Therapy">
+        <div class="gc-ov"><div class="gc-lbl">Manual Therapy</div><div class="gc-sub">Hands-on treatment sessions</div></div>
+      </div>
+      <div class="gc" data-label="Resistance Training" data-sub="Therapist-led rehab sessions">
+        <img src="images/gallery_ladder.jpg" alt="Resistance Training">
+        <div class="gc-ov"><div class="gc-lbl">Resistance Training</div><div class="gc-sub">Therapist-led rehab sessions</div></div>
+      </div>
+      <div class="gc" data-label="Ladder Drills" data-sub="Paediatric agility session">
+        <img src="images/gallery_kids.jpg" alt="Ladder Drills">
+        <div class="gc-ov"><div class="gc-lbl">Ladder Drills</div><div class="gc-sub">Paediatric agility session</div></div>
+      </div>
+      <div class="gc" data-label="Kids Play Area" data-sub="Fun paediatric rehab space">
+        <img src="images/logo_footer.jpg" alt="Kids Play Area">
+        <div class="gc-ov"><div class="gc-lbl">Kids Play Area</div><div class="gc-sub">Fun paediatric rehab space</div></div>
+      </div>
+  </div>
+  <div class="gs-bar-row">
+    <div class="gs-bar"><div class="gs-fill" id="gsFill"></div></div>
+    <button class="gs-btn" id="gsBtnL" onclick="gsScroll(-1)">&#8592;</button>
+    <button class="gs-btn" id="gsBtnR" onclick="gsScroll(1)">&#8594;</button>
+  </div>
+</section>
+
+<!-- Lightbox -->
+<div id="gsLb" onclick="gsLbClose(event)">
+  <div class="gslb-box">
+    <img id="gsLbImg" src="" alt="">
+    <div class="gslb-meta">
+      <div><b id="gsLbLbl"></b><p id="gsLbSub"></p></div>
+      <button onclick="gsLbClose()">&#10005;</button>
+    </div>
+  </div>
+</div>
+
+
+<!-- ── TREATMENT MODAL ── -->
+<div class="txm-backdrop" id="txmBackdrop" onclick="closeTxModal(event)">
+  <div class="txm-box">
+    <button class="txm-close" onclick="closeTxModal()">&#10005;</button>
+    <div class="txm-body">
+      <div class="txm-tag" id="txmTag"></div>
+      <h3 class="txm-title" id="txmTitle"></h3>
+      <p class="txm-desc" id="txmDesc"></p>
+      <ul class="txm-points" id="txmPoints"></ul>
+      <a href="#contact" class="txm-cta" id="txmCta" onclick="closeTxModal()">Book a free consultation →</a>
+    </div>
+    <div class="txm-img">
+      <div class="txm-img-frame">
+        <div class="txm-img-bg" id="txmImgBg"></div>
+        <div class="txm-img-icon" id="txmIcon"></div>
+        <div class="txm-img-corner tl"></div>
+        <div class="txm-img-corner tr"></div>
+        <div class="txm-img-corner bl"></div>
+        <div class="txm-img-corner br"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ── TESTIMONIALS ── -->
+<section class="testimonials" id="testimonials">
+  <div class="section-label reveal"><div class="section-label-line"></div><span>Patient Stories</span></div>
+  <h2 class="section-title reveal">What Our Patients <em>Say</em></h2>
+  <div class="testi-grid">
+    <div class="testi-card reveal">
+      <div class="testi-stars">★★★★★</div>
+      <div class="testi-text">"Revalix gave me my life back. After my ACL surgery I was told I might never play again. Their team proved that completely wrong."</div>
+      <div class="testi-divider"></div>
+      <div class="testi-name">Rohan K.</div>
+      <div class="testi-condition">ACL Reconstruction — Elite Sports</div>
+    </div>
+    <div class="testi-card reveal">
+      <div class="testi-stars">★★★★★</div>
+      <div class="testi-text">"The clinical expertise combined with their warmth as human beings is extraordinary. I felt genuinely cared for every single session."</div>
+      <div class="testi-divider"></div>
+      <div class="testi-name">Sunita V.</div>
+      <div class="testi-condition">Chronic Back Pain — Orthopedic</div>
+    </div>
+    <div class="testi-card reveal">
+      <div class="testi-stars">★★★★★</div>
+      <div class="testi-text">"Post-stroke, my family and I were devastated. The neurology team guided us through every step with patience and incredible skill."</div>
+      <div class="testi-divider"></div>
+      <div class="testi-name">Rajan P.</div>
+      <div class="testi-condition">Stroke Recovery — Neurology</div>
+    </div>
+  </div>
+</section>
+
+<!-- ── CONTACT ── -->
+<div class="contact" id="contact">
+  <div class="contact-left">
+    <div class="section-label reveal-left"><div class="section-label-line"></div><span>Get In Touch</span></div>
+    <h2 class="section-title reveal-left">Start Your<br><em>Recovery Today</em></h2>
+    <p class="section-sub reveal-left">Book a free initial assessment and let our specialists design a plan built around your goals.</p>
+    <div class="contact-details">
+      <div class="contact-item reveal-left">
+        <div class="ci-icon"><svg viewBox="0 0 24 24"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 12 19.79 19.79 0 0 1 1.15 3.18 2 2 0 0 1 3.12 1h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 8.96a16 16 0 0 0 6.29 6.29l1.41-1.41a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg></div>
+        <div><div class="ci-label">Phone</div><div class="ci-val">+91 98765 43210</div></div>
+      </div>
+      <div class="contact-item reveal-left">
+        <div class="ci-icon"><svg viewBox="0 0 24 24"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg></div>
+        <div><div class="ci-label">Email</div><div class="ci-val"><a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="8fe6e1e9e0cffdeaf9eee3e6f7ece3e6e1e6eca1ece0e2">[email&#160;protected]</a></div></div>
+      </div>
+      <div class="contact-item reveal-left">
+        <div class="ci-icon"><svg viewBox="0 0 24 24"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg></div>
+        <div><div class="ci-label">Location</div><div class="ci-val">Revalix Physiotherapy & Performance Clinic</div></div>
+      </div>
+    </div>
+  </div>
+  <div class="contact-right">
+    <h3>Book an Appointment</h3>
+    <form onsubmit="handleSubmit(event)">
+      <div class="form-row">
+        <div class="form-group"><label>First Name</label><input type="text" placeholder="Your first name"></div>
+        <div class="form-group"><label>Last Name</label><input type="text" placeholder="Your last name"></div>
+      </div>
+      <div class="form-group"><label>Email Address</label><input type="email" placeholder="you@example.com"></div>
+      <div class="form-group"><label>Phone</label><input type="tel" placeholder="+91 98765 43210"></div>
+      <div class="form-group">
+        <label>Speciality Needed</label>
+        <select>
+          <option value="">Select a speciality</option>
+          <option>Orthopedic</option>
+          <option>Neurology</option>
+          <option>Cardiorespiratory</option>
+          <option>Elite Sports</option>
+          <option>Performance Rehab</option>
+          <option>Pediatric Rehab</option>
+          <option>Strength &amp; Conditioning</option>
+        </select>
+      </div>
+      <div class="form-group"><label>Tell us about your condition</label><textarea placeholder="Brief description of your injury, pain, or goals..."></textarea></div>
+      <button type="submit" class="btn-submit" id="submitBtn">Book Free Consultation</button>
+    </form>
+  </div>
+</div>
+
+<!-- ── FOOTER ── -->
+<footer>
+  <div class="footer-top">
+    <div>
+      <div class="footer-logo"><img src="images/modal_orthopedic.png" alt="Revalix" style="height:50px;width:auto;display:block"/></div>
+      <p class="footer-about">Elite physiotherapy and performance care — where science meets compassion. Helping you restore, rebuild and perform at your best.</p>
+    </div>
+    <div class="footer-col">
+      <h4>Specialities</h4>
+      <a href="#">Orthopedic</a>
+      <a href="#">Neurology</a>
+      <a href="#">Cardiorespiratory</a>
+      <a href="#">Elite Sports</a>
+      <a href="#">Performance Rehab</a>
+      <a href="#">Pediatric Rehab</a>
+      <a href="#">Strength &amp; Conditioning</a>
+    </div>
+    <div class="footer-col">
+      <h4>Clinic</h4>
+      <a href="#">About Us</a>
+      <a href="#team">Our Team</a>
+      <a href="#technology">Technology</a>
+      <a href="#">Blog</a>
+      <a href="#">FAQ</a>
+    </div>
+    <div class="footer-col">
+      <h4>Legal</h4>
+      <a href="#">Privacy Policy</a>
+      <a href="#">Terms of Service</a>
+      <a href="#">Accessibility</a>
+    </div>
+  </div>
+  <div class="footer-bottom">
+    <p>© 2026 Revalix Physiotherapy & Performance Clinic. All rights reserved.</p>
+    <div class="social-links">
+      <a href="#" class="social-link"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"/></svg></a>
+      <a href="#" class="social-link"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M23 3a10.9 10.9 0 0 1-3.14 1.53 4.48 4.48 0 0 0-7.86 3v1A10.66 10.66 0 0 1 3 4s-4 9 5 13a11.64 11.64 0 0 1-7 2c9 5 20 0 20-11.5a4.5 4.5 0 0 0-.08-.83A7.72 7.72 0 0 0 23 3z"/></svg></a>
+      <a href="#" class="social-link"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="20" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r=".5" fill="currentColor" stroke="none"/></svg></a>
+    </div>
+  </div>
+</footer>
+
+<script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script src="js/main.js"></script>
+</body>
+</html>
