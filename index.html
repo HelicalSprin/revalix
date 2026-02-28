@@ -196,18 +196,9 @@
 @media (max-width: 768px) {
   html, body { overflow-x: hidden !important; width: 100% !important; }
 
-  /* FIX 1: Reduce hero top space on mobile, show brand name */
+  /* FIX 1: Reduce hero top space on mobile */
   .hero-content { padding: 72px 20px 48px !important; }
-  .hero-brand-mobile { 
-    display: block !important; 
-    font-family: 'Playfair Display', serif;
-    font-size: 28px; 
-    font-weight: 900;
-    color: #fff;
-    letter-spacing: 2px;
-    margin-bottom: 8px;
-  }
-  .hero-eyebrow { margin-bottom: 16px !important; }
+  .hero-logo-img { height: 34px !important; }
 
   /* FIX 2: Modal full screen on mobile, scrollable */
   .txm-backdrop { padding: 0 !important; align-items: flex-end !important; }
@@ -269,11 +260,9 @@
   <canvas id="hero-canvas"></canvas>
   <div class="hero-overlay"></div>
   <div class="hero-content">
-    <div class="hero-brand-mobile">Revalix</div>
-      <div class="hero-eyebrow">
-      <div class="hero-eyebrow-line"></div>
-      <span>Physiotherapy & Performance Clinic</span>
-    </div>
+    <div class="hero-brand-logo">
+        <img src="images/brand_logo_white.png" alt="Revalix" class="hero-logo-img">
+      </div>
     <h1>Restore.<br><span class="line-accent">Rebuild.</span><br>Perform.</h1>
     <p>Elite physiotherapy and rehabilitation care — where evidence-based science meets compassionate, personalised treatment for every stage of your recovery.</p>
     <div class="hero-ctas">
