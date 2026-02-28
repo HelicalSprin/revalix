@@ -262,7 +262,7 @@
   <div class="hero-overlay"></div>
   <div class="hero-content">
     <div class="hero-brand-logo">
-        <img src="images/brand_logo_white.png" alt="Revalix" class="hero-logo-img" style="height:44px!important;width:auto!important;max-width:260px!important;min-width:0!important;object-fit:contain!important;display:block!important;">
+        <img src="images/brand_logo_white.png" alt="Revalix" class="hero-logo-img" style="width:200px;height:auto;display:block;">
       </div>
     <h1>Restore.<br><span class="line-accent">Rebuild.</span><br>Perform.</h1>
     <p>Elite physiotherapy and rehabilitation care — where evidence-based science meets compassionate, personalised treatment for every stage of your recovery.</p>
@@ -736,20 +736,6 @@
 
 <script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script src="js/main.js"></script>
 
-<script>
-(function(){
-  function fixLogo(){
-    var img = document.querySelector('.hero-logo-img');
-    if(!img) return;
-    if(window.innerWidth <= 768){
-      img.style.cssText = 'height:34px!important;width:auto!important;max-width:180px!important;object-fit:contain!important;display:block!important;';
-    } else {
-      img.style.cssText = 'height:44px!important;width:auto!important;max-width:260px!important;object-fit:contain!important;display:block!important;';
-    }
-  }
-  fixLogo();
-  window.addEventListener('resize', fixLogo);
-})();
-</script>
+
 </body>
 </html>
