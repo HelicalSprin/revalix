@@ -205,7 +205,6 @@ nav { animation:fadeDown .8s ease both; }
 @media (max-width:960px) {
   nav { padding:16px 24px; } .nav-links { display:none; }
   section { padding:64px 24px; }
-  .hero-content { padding:100px 24px 80px; }
   .hero-stats { position:static; margin-top:48px; justify-content:flex-start; }
   .scroll-hint { display:none; }
   .muscle-section, .team-inner, .contact { grid-template-columns:1fr; }
@@ -383,7 +382,6 @@ nav { animation:fadeDown .8s ease both; }
   .nav-book-btn { padding: 10px 18px; font-size: 12px; }
 
   /* Hero */
-  .hero-content { padding: 100px 24px 60px; }
   .hero h1 { font-size: clamp(38px, 7vw, 60px); }
   .hero p { font-size: 14px; }
   .hero-right { display: none; }
@@ -435,7 +433,7 @@ nav { animation:fadeDown .8s ease both; }
 /* ── Mobile (max 600px) ── */
 @media (max-width: 600px) {
   /* Hero */
-  .hero-content { padding: 90px 20px 48px; }
+  .hero-content { padding: 70px 20px 40px; }
   .hero h1 { font-size: clamp(32px, 9vw, 48px); }
   .hero p { font-size: 13px; max-width: 100%; }
   .hero-btns { flex-direction: column; gap: 12px; }
@@ -572,8 +570,19 @@ nav { animation:fadeDown .8s ease both; }
   .tx-popup { display: none !important; }
 }
 
-/* Hero brand mobile */
+/* ── HERO LOGO ── */
+.hero-brand-logo { margin-bottom: 28px; }
 .hero-brand-mobile { display: none; }
+img.hero-logo-img {
+  height: 44px !important;
+  width: auto !important;
+  max-width: 280px !important;
+  min-width: unset !important;
+  object-fit: contain !important;
+  display: block !important;
+  opacity: 0.95;
+}
 @media (max-width: 768px) {
-  .hero-brand-mobile { display: block; }
+  .hero-brand-logo { margin-bottom: 16px; }
+  img.hero-logo-img { height: 34px !important; max-width: 180px !important; }
 }
