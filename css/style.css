@@ -208,7 +208,6 @@ nav { animation:fadeDown .8s ease both; }
   .hero-content { padding:100px 24px 80px; }
   .hero-stats { position:static; margin-top:48px; justify-content:flex-start; }
   .scroll-hint { display:none; }
-  .treatments-grid { grid-template-columns:1fr 1fr; }
   .muscle-section, .team-inner, .contact { grid-template-columns:1fr; }
   .muscle-canvas-wrap { height:380px; }
   .testi-grid { grid-template-columns:1fr; }
@@ -443,7 +442,6 @@ nav { animation:fadeDown .8s ease both; }
   .hero-btns a { width: 100%; text-align: center; justify-content: center; }
 
   /* Treatments */
-  .treatments-grid { grid-template-columns: 1fr !important; }
   .treatments .treatments-header { padding: 40px 20px 0; }
   .treatment-card { padding: 28px 20px; width: 100%; box-sizing: border-box; }
   .treatment-num { font-size: 48px; }
@@ -546,23 +544,22 @@ nav { animation:fadeDown .8s ease both; }
 }
 
 
-/* ══ FORCE MOBILE FIX ══ */
+/* ══ MOBILE RESPONSIVE ══ */
 @media (max-width: 768px) {
-  html, body { overflow-x: hidden !important; max-width: 100vw !important; }
-  
+  html, body { overflow-x: hidden; }
+
+  /* Force single column treatment cards */
   .treatments { padding: 0 !important; }
-  .treatments-header { padding: 48px 20px 32px !important; }
-  .treatments-grid { 
-    display: grid !important; 
-    grid-template-columns: 1fr !important; 
-    gap: 2px !important;
-    width: 100% !important;
+  .treatments-header { padding: 40px 20px 28px !important; }
+  .treatments-grid {
+    grid-template-columns: 1fr !important;
+    width: 100%;
   }
-  .treatment-card { 
-    width: 100% !important; 
-    min-width: 0 !important;
-    max-width: 100% !important;
-    box-sizing: border-box !important;
+  .treatment-card {
+    width: 100%;
+    min-width: 0;
+    box-sizing: border-box;
     padding: 28px 20px !important;
   }
+  .treatment-num { font-size: 44px; }
 }
