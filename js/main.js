@@ -321,7 +321,7 @@ function handleSubmit(e){
 
 /* ── TREATMENT POPUPS ── */
 var _txT={};
-function showTxP(e,id){
+function showTxP(e,id){ if(window.innerWidth<=768)return;
   var p=document.getElementById(id);if(!p)return;clearTimeout(_txT[id]);
   var cr=e.currentTarget.getBoundingClientRect(),pw=340;
   var left=cr.right+14;if(left+pw>window.innerWidth-16)left=cr.left-pw-14;
