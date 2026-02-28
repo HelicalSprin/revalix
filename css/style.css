@@ -563,3 +563,11 @@ nav { animation:fadeDown .8s ease both; }
   }
   .treatment-num { font-size: 44px; }
 }
+
+
+/* MOBILE: single column treatments */
+@media (max-width: 768px) {
+  .treatments-grid { grid-template-columns: 1fr !important; }
+  .treatment-card { grid-column: span 1 !important; }
+  .tx-popup { display: none !important; }
+}

@@ -192,14 +192,37 @@
 </script>
   <link rel="stylesheet" href="css/style.css">
 <style>
+/* MOBILE CRITICAL OVERRIDES */
 @media (max-width: 768px) {
-  html, body { overflow-x: hidden !important; }
-  .treatments { padding: 0 !important; }
+  html, body { overflow-x: hidden !important; width: 100% !important; }
+  
+  /* Kill ALL floating tooltips on mobile */
+  .tx-popup, [id^="txp"] { 
+    display: none !important; 
+    visibility: hidden !important;
+    opacity: 0 !important;
+    pointer-events: none !important;
+  }
+  
+  /* Treatments - single column, full width */
+  .treatments { padding: 0 !important; width: 100% !important; }
   .treatments-header { padding: 40px 20px 28px !important; }
-  .treatments-grid { display: grid !important; grid-template-columns: 1fr !important; width: 100% !important; }
-  .treatment-card { width: 100% !important; min-width: 0 !important; max-width: 100% !important; box-sizing: border-box !important; padding: 28px 20px !important; }
-  /* Hide floating tooltips on mobile - they cause overlap */
-  [id^="txp"] { display: none !important; }
+  .treatments-grid { 
+    display: grid !important; 
+    grid-template-columns: 1fr !important;
+    grid-template-rows: auto !important;
+    width: 100% !important;
+    gap: 2px !important;
+  }
+  .treatment-card { 
+    width: 100% !important; 
+    min-width: 0 !important;
+    max-width: 100% !important;
+    box-sizing: border-box !important;
+    padding: 28px 20px !important;
+    grid-column: span 1 !important;
+    position: relative !important;
+  }
 }
 </style>
 </head>
@@ -377,7 +400,7 @@
         <a href="#contact" class="tx-popup-cta" style="color:#2979d5">Book a consultation →</a>
       </div>
     </div>
-<div class="treatment-card reveal" style="grid-column:span 2;" onmouseenter="showTxP(event,'txp07')" onmouseleave="hideTxP('txp07')">
+<div class="treatment-card reveal" onmouseenter="showTxP(event,'txp07')" onmouseleave="hideTxP('txp07')">
       <div class="treatment-num">07</div>
       <div class="treatment-icon-wrap"><svg viewBox="0 0 24 24"><path d="M6 4v16M18 4v16M3 8h3M18 8h3M3 16h3M18 16h3M6 12h12"/></svg></div>
       <div class="treatment-title">Strength & Conditioning</div>
