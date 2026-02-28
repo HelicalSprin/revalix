@@ -195,9 +195,10 @@
 /* MOBILE CRITICAL OVERRIDES */
 @media (max-width: 768px) {
   html, body { overflow-x: hidden !important; width: 100% !important; }
+  .hero { align-items: flex-start !important; padding-top: 0 !important; }
 
   /* FIX 1: Reduce hero top space on mobile */
-  .hero-content { padding: 64px 20px 40px !important; }
+  .hero-content { padding: 56px 20px 36px !important; }
   .hero-logo-img { height: 36px !important; width: auto !important; max-width: 200px !important; object-fit: contain !important; }
 
   /* FIX 2: Modal full screen on mobile, scrollable */
@@ -261,7 +262,7 @@
   <div class="hero-overlay"></div>
   <div class="hero-content">
     <div class="hero-brand-logo">
-        <img src="images/brand_logo_white.png" alt="Revalix" class="hero-logo-img">
+        <img src="images/brand_logo_white.png" alt="Revalix" class="hero-logo-img" style="height:44px!important;width:auto!important;max-width:260px!important;min-width:0!important;object-fit:contain!important;display:block!important;">
       </div>
     <h1>Restore.<br><span class="line-accent">Rebuild.</span><br>Perform.</h1>
     <p>Elite physiotherapy and rehabilitation care — where evidence-based science meets compassionate, personalised treatment for every stage of your recovery.</p>
@@ -734,5 +735,21 @@
 </footer>
 
 <script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script src="js/main.js"></script>
+
+<script>
+(function(){
+  function fixLogo(){
+    var img = document.querySelector('.hero-logo-img');
+    if(!img) return;
+    if(window.innerWidth <= 768){
+      img.style.cssText = 'height:34px!important;width:auto!important;max-width:180px!important;object-fit:contain!important;display:block!important;';
+    } else {
+      img.style.cssText = 'height:44px!important;width:auto!important;max-width:260px!important;object-fit:contain!important;display:block!important;';
+    }
+  }
+  fixLogo();
+  window.addEventListener('resize', fixLogo);
+})();
+</script>
 </body>
 </html>
