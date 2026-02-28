@@ -15,7 +15,7 @@
 }
 
 html { scroll-behavior: smooth; }
-body { font-family: 'Outfit', sans-serif; background: var(--navy); color: var(--white); overflow-x: hidden; }
+html, body { overflow-x: hidden; } body { font-family: 'Outfit', sans-serif; background: var(--navy); color: var(--white); overflow-x: hidden; }
 
 /* ── CURSOR ── */
 .cursor { width:8px; height:8px; background:var(--terra); border-radius:50%; position:fixed; top:0; left:0; pointer-events:none; z-index:9999; transition:transform .1s; }
@@ -73,10 +73,11 @@ section { padding:100px 64px; }
 .section-sub { font-size:15px; color:var(--text-dim); line-height:1.8; font-weight:300; max-width:500px; margin-top:14px; }
 
 /* ── TREATMENTS ── */
-.treatments { background:var(--navy-mid); }
+.treatments { background:var(--navy-mid); overflow:hidden; width:100%; max-width:100%; padding:0 !important; }
+.treatments .treatments-header { padding: 80px 64px 0; }
 .treatments-header { display:flex; justify-content:space-between; align-items:flex-end; margin-bottom:64px; flex-wrap:wrap; gap:24px; }
-.treatments-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:2px; }
-.treatment-card { background:var(--navy); padding:40px 28px; position:relative; overflow:hidden; cursor:pointer; transition:background .3s; }
+.treatments-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:2px; width:100%; overflow:hidden; }
+.treatment-card { background:var(--navy); padding:40px 28px; position:relative; overflow:hidden; cursor:pointer; transition:background .3s; min-width:0; box-sizing:border-box; }
 .treatment-card:hover { background:var(--navy-light); }
 .treatment-card::after { content:''; position:absolute; bottom:0; left:0; width:0; height:2px; background:var(--terra); transition:width .4s; }
 .treatment-card:hover::after { width:100%; }
@@ -394,8 +395,7 @@ nav { animation:fadeDown .8s ease both; }
   .section-title { font-size: clamp(30px, 5vw, 48px); }
 
   /* Treatments */
-  .treatments-grid { grid-template-columns: 1fr 1fr; }
-
+  
   /* Body map */
   .bodymap-section { grid-template-columns: 1fr; }
   .bodymap-left { position: static; }
@@ -443,8 +443,9 @@ nav { animation:fadeDown .8s ease both; }
   .hero-btns a { width: 100%; text-align: center; justify-content: center; }
 
   /* Treatments */
-  .treatments-grid { grid-template-columns: 1fr; }
-  .treatment-card { padding: 28px 20px; }
+  .treatments-grid { grid-template-columns: 1fr !important; }
+  .treatments .treatments-header { padding: 40px 20px 0; }
+  .treatment-card { padding: 28px 20px; width: 100%; box-sizing: border-box; }
   .treatment-num { font-size: 48px; }
 
   /* Section */
@@ -497,8 +498,7 @@ nav { animation:fadeDown .8s ease both; }
 /* ── Small mobile (max 400px) ── */
 @media (max-width: 400px) {
   .hero h1 { font-size: 28px; }
-  .treatments-grid { grid-template-columns: 1fr; }
-  .gc { flex: 0 0 200px; height: 160px; }
+    .gc { flex: 0 0 200px; height: 160px; }
   .section-title { font-size: 26px; }
 }
 
