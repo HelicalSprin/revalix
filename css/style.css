@@ -177,7 +177,7 @@ section { padding:100px 64px; }
 
 /* ── FOOTER ── */
 footer { background:#080f1e; padding:60px 64px 36px; }
-.footer-top { display:grid; grid-template-columns:2fr 1fr 1fr 1fr; gap:56px; padding-bottom:48px; border-bottom:1px solid var(--border); }
+.footer-top { display:grid; grid-template-columns:2fr 1.8fr 1.8fr; gap:80px; padding-bottom:48px; border-bottom:1px solid var(--border); }
 .footer-logo { display:flex; align-items:center; gap:12px; margin-bottom:20px; }
 .footer-logo-icon { width:40px; height:40px; background:var(--terra); border-radius:50%; display:flex; align-items:center; justify-content:center; font-family:'Playfair Display',serif; font-size:18px; font-weight:900; color:#fff; }
 .footer-logo-name { font-family:'Playfair Display',serif; font-size:18px; font-weight:700; letter-spacing:2px; text-transform:uppercase; }
