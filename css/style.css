@@ -873,4 +873,8 @@ img.hero-logo-img {
 }
 
 /* Tighten team section */
-#team { padding: 80px 0 40px !important; }
+#team { padding: 80px 64px 40px !important; }
+
+@media (max-width: 768px) {
+  #team { padding: 60px 20px 32px !important; }
+}
