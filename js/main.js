@@ -28,7 +28,9 @@ document.querySelectorAll('.reveal,.reveal-left').forEach(el => ro.observe(el));
 
 /* ── THREE.JS HERO: Particle Network ── */
 (function(){
+  try{
   const c = document.getElementById('hero-canvas');
+  if(window.innerWidth <= 768){ c.style.display='none'; return; }
   const R = new THREE.WebGLRenderer({canvas:c, antialias:true, alpha:true});
   R.setPixelRatio(Math.min(devicePixelRatio,2));
   R.setSize(c.offsetWidth, c.offsetHeight);
@@ -36,7 +38,7 @@ document.querySelectorAll('.reveal,.reveal-left').forEach(el => ro.observe(el));
   const cam = new THREE.PerspectiveCamera(60, c.offsetWidth/c.offsetHeight, 0.1, 1000);
   cam.position.set(0,0,24);
 
-  const N=180, pos=new Float32Array(N*3), spd=[], nds=[];
+  const N=window.innerWidth<=768?0:120, pos=new Float32Array(N*3), spd=[], nds=[];
   for(let i=0;i<N;i++){
     const x=(Math.random()-.5)*50,y=(Math.random()-.5)*30,z=(Math.random()-.5)*20;
     pos[i*3]=x;pos[i*3+1]=y;pos[i*3+2]=z;
@@ -68,6 +70,7 @@ document.querySelectorAll('.reveal,.reveal-left').forEach(el => ro.observe(el));
     R.render(scene,cam);
   })();
   window.addEventListener('resize',()=>{R.setSize(c.offsetWidth,c.offsetHeight);cam.aspect=c.offsetWidth/c.offsetHeight;cam.updateProjectionMatrix();});
+}catch(e){console.warn("Hero canvas:",e);}
 })();
 
 /* ── BODY MAP 3D GLB ── */
