@@ -552,11 +552,16 @@
 
 <!-- Lightbox -->
 <div id="gsLb" onclick="gsLbClose(event)">
-  <div class="gslb-box">
+  <div class="gslb-box" onclick="event.stopPropagation()">
     <img id="gsLbImg" src="" alt="">
     <div class="gslb-meta">
       <div><b id="gsLbLbl"></b><p id="gsLbSub"></p></div>
-      <button onclick="gsLbClose()">&#10005;</button>
+      <div class="gslb-nav">
+        <button class="gslb-prev" onclick="gsLbNav(-1)">&#8592;</button>
+        <span id="gsLbCount"></span>
+        <button class="gslb-next" onclick="gsLbNav(1)">&#8594;</button>
+      </div>
+      <button class="gslb-close" onclick="gsLbClose()">&#10005;</button>
     </div>
   </div>
 </div>
