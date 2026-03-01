@@ -355,7 +355,7 @@ function hideTxP(id){_txT[id]=setTimeout(function(){var p=document.getElementByI
 (function(){var cards=document.querySelectorAll('.hsvc');if(!cards.length)return;[150,300,450,600,750].forEach(function(d,i){setTimeout(function(){if(cards[i])cards[i].classList.add('visible');},700+d);});cards.forEach(function(c,i){var amp=5+(i%3)*3,spd=3200+i*350,t0=Date.now()+i*500;(function tick(){if(!c.classList.contains('visible')){requestAnimationFrame(tick);return;}c.style.transform='translateY('+(Math.sin((Date.now()-t0)/spd*Math.PI*2)*amp)+'px)';requestAnimationFrame(tick);})();});})();
 
 var _txData={
-"01":{title:"Orthopedic",tag:"Speciality 01",color:"#c4622d",bg:"rgba(196,98,45,.25)",img:"images/modal_orthopedic.png",
+"01":{title:"Orthopedic",tag:"Speciality 01",color:"#c4622d",bg:"rgba(196,98,45,.25)",img:"images/modal_orthopedic.webp",
   icon:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><circle cx="12" cy="5" r="2"/><path d="M12 7v5l3 3"/><path d="M8 21c0-4 2-6 4-6s4 2 4 6"/><path d="M5 12h3M16 12h3"/></svg>`,
   desc:"Our orthopedic team restores movement and strength after injury, surgery or degenerative conditions using manual therapy, targeted exercise and the latest technology.",
   points:["ACL & ligament reconstruction","Joint replacement rehab","Rotator cuff & shoulder","Fracture & bone healing","Tendinopathy & bursitis"]},
