@@ -483,3 +483,38 @@ document.addEventListener('DOMContentLoaded', function(){
     });
   });
 });
+
+/* ── TEAM SLIDESHOW ── */
+(function(){
+  var slides = document.querySelectorAll('.tm-slide');
+  var dotsWrap = document.getElementById('tmDots');
+  var track = document.getElementById('tmSlides');
+  var current = 0;
+  var total = slides.length;
+
+  // Build dots
+  slides.forEach(function(_, i){
+    var d = document.createElement('div');
+    d.className = 'tm-dot' + (i===0?' active':'');
+    d.onclick = function(){ tmGoTo(i); };
+    dotsWrap.appendChild(d);
+  });
+
+  function tmGoTo(idx){
+    current = (idx + total) % total;
+    track.style.transform = 'translateX(-' + (current * 100) + '%)';
+    document.querySelectorAll('.tm-dot').forEach(function(d, i){
+      d.classList.toggle('active', i === current);
+    });
+  }
+
+  window.tmNav = function(dir){ tmGoTo(current + dir); };
+
+  // Swipe support on mobile
+  var startX = 0;
+  track.addEventListener('touchstart', function(e){ startX = e.touches[0].clientX; }, {passive:true});
+  track.addEventListener('touchend', function(e){
+    var diff = startX - e.changedTouches[0].clientX;
+    if(Math.abs(diff) > 50) tmNav(diff > 0 ? 1 : -1);
+  });
+})();

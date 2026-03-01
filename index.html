@@ -463,44 +463,52 @@
   <div class="section-label reveal"><div class="section-label-line"></div><span>The Team</span></div>
   <h2 class="section-title reveal">Meet the People<br>Behind Your <em>Recovery</em></h2>
 
-  <div class="team-members-grid">
+  <div class="team-slideshow">
 
-    <div class="team-member-card reveal">
-      <div class="tm-photo-wrap">
-        <img src="images/team_sidharth.webp" alt="Sidharth P V" class="tm-photo">
-        <div class="tm-photo-overlay"></div>
-      </div>
-      <div class="tm-info">
-        <div class="tm-credentials">BPT, MSc Strength &amp; Conditioning and Rehabilitation (UK)</div>
-        <h3 class="tm-name">Sidharth P V</h3>
-        <div class="tm-role">Physiotherapist &amp; Strength and Conditioning Coach</div>
-        <p class="tm-bio">Sidharth holds a Level 7 Master's degree in Strength and Conditioning and Rehabilitation from the UK. He has extensive experience in treating and coaching national and international-level athletes across multiple countries. His approach integrates evidence-based rehabilitation with high-performance strength and conditioning to ensure a safe and effective return to sport.</p>
-        <div class="tm-tags">
-          <span>Orthopedic</span>
-          <span>Elite Sports</span>
-          <span>Performance Rehab</span>
-          <span>S&amp;C</span>
+    <!-- Slides -->
+    <div class="tm-slides" id="tmSlides">
+
+      <div class="tm-slide">
+        <div class="tm-slide-inner">
+          <div class="tm-slide-photo">
+            <img src="images/team_sidharth.webp" alt="Sidharth P V">
+          </div>
+          <div class="tm-slide-info">
+            <div class="tm-credentials">BPT, MSc Strength &amp; Conditioning and Rehabilitation (UK)</div>
+            <h3 class="tm-name">Sidharth P V</h3>
+            <div class="tm-role">Physiotherapist &amp; Strength and Conditioning Coach</div>
+            <p class="tm-bio">Sidharth holds a Level 7 Master's degree in Strength and Conditioning and Rehabilitation from the UK. He has extensive experience in treating and coaching national and international-level athletes across multiple countries. His approach integrates evidence-based rehabilitation with high-performance strength and conditioning to ensure a safe and effective return to sport.</p>
+            <div class="tm-tags">
+              <span>Orthopedic</span><span>Elite Sports</span><span>Performance Rehab</span><span>S&amp;C</span>
+            </div>
+          </div>
         </div>
       </div>
+
+      <div class="tm-slide">
+        <div class="tm-slide-inner">
+          <div class="tm-slide-photo">
+            <img src="images/team_devika.webp" alt="Devika P V">
+          </div>
+          <div class="tm-slide-info">
+            <div class="tm-credentials">MBA Hospital Administration &amp; Marketing</div>
+            <h3 class="tm-name">Devika P V</h3>
+            <div class="tm-role">Administrative Head</div>
+            <p class="tm-bio">Dedicated and organized healthcare professional with experience in hospital operations. Specializes in administrative management, human resources, quality improvement, and operational efficiency — ensuring seamless systems and exceptional patient care delivery.</p>
+            <div class="tm-tags">
+              <span>Administration</span><span>HR &amp; Operations</span><span>Quality Improvement</span><span>Patient Care</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
     </div>
 
-    <div class="team-member-card reveal">
-      <div class="tm-photo-wrap">
-        <img src="images/team_devika.webp" alt="Devika P V" class="tm-photo">
-        <div class="tm-photo-overlay"></div>
-      </div>
-      <div class="tm-info">
-        <div class="tm-credentials">MBA Hospital Administration &amp; Marketing</div>
-        <h3 class="tm-name">Devika P V</h3>
-        <div class="tm-role">Administrative Head</div>
-        <p class="tm-bio">Dedicated and organized healthcare professional with experience in hospital operations. Specializes in administrative management, human resources, quality improvement, and operational efficiency — ensuring seamless systems and exceptional patient care delivery.</p>
-        <div class="tm-tags">
-          <span>Administration</span>
-          <span>HR &amp; Operations</span>
-          <span>Quality Improvement</span>
-          <span>Patient Care</span>
-        </div>
-      </div>
+    <!-- Controls -->
+    <div class="tm-controls">
+      <button class="tm-btn tm-prev" onclick="tmNav(-1)">&#8592;</button>
+      <div class="tm-dots" id="tmDots"></div>
+      <button class="tm-btn tm-next" onclick="tmNav(1)">&#8594;</button>
     </div>
 
   </div>
