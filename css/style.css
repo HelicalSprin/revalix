@@ -738,7 +738,6 @@ img.hero-logo-img {
   max-width: 1000px;
   margin: 0 auto;
   padding: 40px 64px 80px;
-  overflow: hidden;
 }
 .tm-slides {
   display: flex;
@@ -855,4 +854,20 @@ img.hero-logo-img {
   .tm-slide-photo { height: 320px; }
   .tm-slide-info { padding: 28px 24px 32px; }
   .tm-name { font-size: 26px; }
+}
+
+/* Fix slideshow overflow */
+.tm-track {
+  overflow: hidden;
+  width: 100%;
+  border-radius: 24px;
+}
+.tm-slides {
+  display: flex;
+  transition: transform .5s cubic-bezier(.4,0,.2,1);
+  will-change: transform;
+}
+.tm-slide {
+  min-width: 100%;
+  box-sizing: border-box;
 }
