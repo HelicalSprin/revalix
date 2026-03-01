@@ -14,8 +14,8 @@
   --border: rgba(255,255,255,0.1);
 }
 
-html { scroll-behavior: smooth; }
-html, body { overflow-x: hidden; } body { font-family: 'Outfit', sans-serif; background: var(--navy); color: var(--white); overflow-x: hidden; }
+html { scroll-behavior: smooth; background: #0d1f3c; }
+html, body { overflow-x: hidden; } body { background: #0d1f3c; font-family: 'Outfit', sans-serif; background: var(--navy); color: var(--white); overflow-x: hidden; }
 
 /* ── CURSOR ── */
 .cursor { width:8px; height:8px; background:var(--terra); border-radius:50%; position:fixed; top:0; left:0; pointer-events:none; z-index:9999; transition:transform .1s; }
@@ -107,8 +107,8 @@ section { padding:100px 64px; }
 .bm-point-tag:hover{background:rgba(196,98,45,.1);border-color:var(--terra)}
 @keyframes tagPop{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
 .bodymap-stage{position:relative;background:linear-gradient(160deg,#0a1628 0%,#0f2040 50%,#0a1628 100%);border-radius:20px;border:1px solid rgba(255,255,255,.08);overflow:hidden;display:flex;flex-direction:column}
-.bm-3d-wrap{flex:1;position:relative;min-height:580px}
-.bm-3d-canvas{width:100%;height:100%;display:block;cursor:grab}
+.bm-3d-wrap{flex:1;position:relative;min-height:580px;background:#080e1a;}
+.bm-3d-canvas{width:100%;height:100%;display:block;cursor:grab;background:#080e1a;}
 .bm-3d-canvas:active{cursor:grabbing}
 .bm-slide-badge{position:absolute;top:16px;left:20px;font-size:10px;font-weight:700;letter-spacing:2px;text-transform:uppercase;background:rgba(13,31,60,.9);color:#fff;padding:4px 12px;border-radius:100px;border-left:3px solid var(--terra);z-index:10;pointer-events:none}
 .bm-loading{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;background:linear-gradient(160deg,#0a1628,#0f2040);z-index:20;transition:opacity .6s}
@@ -585,4 +585,20 @@ img.hero-logo-img {
 @media (max-width: 768px) {
   .hero-brand-logo { margin-bottom: 16px; }
   img.hero-logo-img { height: 34px !important; max-width: 180px !important; }
+}
+
+/* Hero brand name */
+.hero-brand-name {
+  font-family: 'Playfair Display', serif;
+  font-size: 18px;
+  font-weight: 400;
+  letter-spacing: 6px;
+  text-transform: uppercase;
+  color: var(--terra-light);
+  margin-top: 12px;
+  margin-bottom: 32px;
+  opacity: 0.85;
+}
+@media (max-width: 768px) {
+  .hero-brand-name { font-size: 14px; letter-spacing: 4px; margin-top: 8px; margin-bottom: 20px; }
 }

@@ -112,7 +112,8 @@ function initBodyMap(){
   if(!canvas||!wrap)return;
 
   const renderer=new THREE.WebGLRenderer({canvas,antialias:true,alpha:true});
-  renderer.setPixelRatio(Math.min(window.devicePixelRatio,2));
+  renderer.setClearColor(0x080e1a, 1);
+renderer.setPixelRatio(Math.min(window.devicePixelRatio,2));
   renderer.toneMapping=THREE.ACESFilmicToneMapping;
   renderer.toneMappingExposure=1.2;
   renderer.outputEncoding=THREE.sRGBEncoding;
