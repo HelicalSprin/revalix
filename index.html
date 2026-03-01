@@ -196,46 +196,19 @@
 /* MOBILE CRITICAL OVERRIDES */
 @media (max-width: 768px) {
   html, body { overflow-x: hidden !important; width: 100% !important; }
-  .hero { align-items: flex-start !important; padding-top: 0 !important; min-height: unset !important; height: auto !important; padding-bottom: 60px !important; }
-
-  /* FIX 1: Reduce hero top space on mobile */
   .hero-content { padding: 80px 20px 36px !important; }
-  .hero-logo-img { height: 36px !important; width: auto !important; max-width: 200px !important; object-fit: contain !important; }
-
-  /* FIX 2: Modal full screen on mobile, scrollable */
-  .txm-backdrop { padding: 0 !important; align-items: flex-end !important; }
-  .txm-box { 
-    flex-direction: column-reverse !important; 
-    height: 92vh !important; 
-    max-height: 92vh !important;
-    width: 100% !important;
-    border-radius: 20px 20px 0 0 !important;
-    overflow-y: auto !important;
-  }
-  .txm-body { 
-    padding: 24px 20px 32px !important; 
-    overflow-y: visible !important;
-  }
-  .txm-img { 
-    flex: 0 0 220px !important; 
-    width: 100% !important; 
-    height: 220px !important;
-    padding: 0 !important;
-  }
-  .txm-img-frame { border-radius: 0 !important; }
-  .txm-close { top: 12px !important; right: 12px !important; z-index: 10 !important; }
-
-  /* FIX 3: Hide cursor on mobile */
+  img.hero-logo-img { width: 180px !important; height: auto !important; }
+  .hero { align-items: flex-start !important; min-height: unset !important; height: auto !important; padding-bottom: 60px !important; }
   .cursor, .cursor-ring { display: none !important; }
-
-  /* Kill tooltips */
   .tx-popup, [id^="txp"] { display: none !important; opacity: 0 !important; pointer-events: none !important; }
-
-  /* Treatments single column */
   .treatments { padding: 0 !important; }
   .treatments-header { padding: 40px 20px 28px !important; }
   .treatments-grid { display: grid !important; grid-template-columns: 1fr !important; width: 100% !important; gap: 2px !important; }
   .treatment-card { width: 100% !important; min-width: 0 !important; max-width: 100% !important; box-sizing: border-box !important; padding: 28px 20px !important; grid-column: span 1 !important; }
+  .txm-backdrop { padding: 0 !important; align-items: flex-end !important; }
+  .txm-box { flex-direction: column-reverse !important; height: 92vh !important; max-height: 92vh !important; width: 100% !important; border-radius: 20px 20px 0 0 !important; overflow-y: auto !important; }
+  .txm-img { flex: 0 0 220px !important; width: 100% !important; height: 220px !important; padding: 0 !important; }
+  .txm-close { top: 12px !important; right: 12px !important; z-index: 10 !important; }
 }
 </style>
 </head>
@@ -410,7 +383,7 @@
         <a href="#contact" class="tx-popup-cta" style="color:#2979d5">Book a consultation →</a>
       </div>
     </div>
-<div class="treatment-card reveal" onmouseenter="showTxP(event,'txp07')" onmouseleave="hideTxP('txp07')">
+<div class="treatment-card reveal" style="grid-column:span 2;" onmouseenter="showTxP(event,'txp07')" onmouseleave="hideTxP('txp07')">
       <div class="treatment-num">07</div>
       <div class="treatment-icon-wrap"><svg viewBox="0 0 24 24"><path d="M6 4v16M18 4v16M3 8h3M18 8h3M3 16h3M18 16h3M6 12h12"/></svg></div>
       <div class="treatment-title">Strength & Conditioning</div>
@@ -462,7 +435,7 @@
       <div class="bm-loading-text" id="bmLoadText">Loading model&hellip;</div>
     </div>
 
-    <div class="bm-3d-wrap" id="bm3dWrap" style="background:#080e1a;">
+    <div class="bm-3d-wrap" id="bm3dWrap">
       <canvas class="bm-3d-canvas" id="bm3dCanvas"></canvas>
     </div>
 
@@ -526,47 +499,47 @@
   </div>
   <div class="gs-strip" id="gsStrip">
       <div class="gc" data-label="Revalix Clinic" data-sub="Our state-of-the-art facility">
-        <img loading="lazy" src="images/gallery_rehab_suite.webp" alt="Revalix Clinic">
+        <img src="images/gallery_rehab_suite.webp" alt="Revalix Clinic">
         <div class="gc-ov"><div class="gc-lbl">Revalix Clinic</div><div class="gc-sub">Our state-of-the-art facility</div></div>
       </div>
       <div class="gc" data-label="Rehabilitation Suite" data-sub="Stair & parallel bar rehab">
-        <img loading="lazy" src="images/gallery_treatment_room.webp" alt="Rehabilitation Suite">
+        <img src="images/gallery_treatment_room.webp" alt="Rehabilitation Suite">
         <div class="gc-ov"><div class="gc-lbl">Rehabilitation Suite</div><div class="gc-sub">Stair & parallel bar rehab</div></div>
       </div>
       <div class="gc" data-label="Treatment Room" data-sub="Electrotherapy & manual therapy">
-        <img loading="lazy" src="images/gallery_perf_lab.webp" alt="Treatment Room">
+        <img src="images/gallery_perf_lab.webp" alt="Treatment Room">
         <div class="gc-ov"><div class="gc-lbl">Treatment Room</div><div class="gc-sub">Electrotherapy & manual therapy</div></div>
       </div>
       <div class="gc" data-label="Performance Lab" data-sub="Strength & conditioning equipment">
-        <img loading="lazy" src="images/gallery_agility.webp" alt="Performance Lab">
+        <img src="images/gallery_agility.webp" alt="Performance Lab">
         <div class="gc-ov"><div class="gc-lbl">Performance Lab</div><div class="gc-sub">Strength & conditioning equipment</div></div>
       </div>
       <div class="gc" data-label="Agility Training" data-sub="Performance rehab in action">
-        <img loading="lazy" src="images/gallery_sports.webp" alt="Agility Training">
+        <img src="images/gallery_sports.webp" alt="Agility Training">
         <div class="gc-ov"><div class="gc-lbl">Agility Training</div><div class="gc-sub">Performance rehab in action</div></div>
       </div>
       <div class="gc" data-label="Sports Rehab" data-sub="Return-to-sport training">
-        <img loading="lazy" src="images/gallery_footwork.webp" alt="Sports Rehab">
+        <img src="images/gallery_footwork.webp" alt="Sports Rehab">
         <div class="gc-ov"><div class="gc-lbl">Sports Rehab</div><div class="gc-sub">Return-to-sport training</div></div>
       </div>
       <div class="gc" data-label="Footwork Training" data-sub="Precision footwork drills">
-        <img loading="lazy" src="images/gallery_manual_therapy.webp" alt="Footwork Training">
+        <img src="images/gallery_manual_therapy.webp" alt="Footwork Training">
         <div class="gc-ov"><div class="gc-lbl">Footwork Training</div><div class="gc-sub">Precision footwork drills</div></div>
       </div>
       <div class="gc" data-label="Manual Therapy" data-sub="Hands-on treatment sessions">
-        <img loading="lazy" src="images/gallery_resistance.webp" alt="Manual Therapy">
+        <img src="images/gallery_resistance.webp" alt="Manual Therapy">
         <div class="gc-ov"><div class="gc-lbl">Manual Therapy</div><div class="gc-sub">Hands-on treatment sessions</div></div>
       </div>
       <div class="gc" data-label="Resistance Training" data-sub="Therapist-led rehab sessions">
-        <img loading="lazy" src="images/gallery_ladder.webp" alt="Resistance Training">
+        <img src="images/gallery_ladder.webp" alt="Resistance Training">
         <div class="gc-ov"><div class="gc-lbl">Resistance Training</div><div class="gc-sub">Therapist-led rehab sessions</div></div>
       </div>
       <div class="gc" data-label="Ladder Drills" data-sub="Paediatric agility session">
-        <img loading="lazy" src="images/gallery_kids.webp" alt="Ladder Drills">
+        <img src="images/gallery_kids.webp" alt="Ladder Drills">
         <div class="gc-ov"><div class="gc-lbl">Ladder Drills</div><div class="gc-sub">Paediatric agility session</div></div>
       </div>
       <div class="gc" data-label="Kids Play Area" data-sub="Fun paediatric rehab space">
-        <img loading="lazy" src="images/logo_footer.webp" alt="Kids Play Area">
+        <img src="images/logo_footer.webp" alt="Kids Play Area">
         <div class="gc-ov"><div class="gc-lbl">Kids Play Area</div><div class="gc-sub">Fun paediatric rehab space</div></div>
       </div>
   </div>
@@ -695,7 +668,7 @@
 <footer>
   <div class="footer-top">
     <div>
-      <div class="footer-logo"><img loading="lazy" src="images/modal_orthopedic.png" alt="Revalix" style="height:50px;width:auto;display:block"/></div>
+      <div class="footer-logo"><img src="images/modal_orthopedic.png" alt="Revalix" style="height:50px;width:auto;display:block"/></div>
       <p class="footer-about">Elite physiotherapy and performance care — where science meets compassion. Helping you restore, rebuild and perform at your best.</p>
     </div>
     <div class="footer-col">
@@ -734,7 +707,5 @@
 </footer>
 
 <script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script src="js/main.js"></script>
-
-
 </body>
 </html>
