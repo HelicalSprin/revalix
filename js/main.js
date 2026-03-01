@@ -11,9 +11,7 @@ el.addEventListener('mouseleave', () => { ring.style.width=ring.style.height='36
 window.addEventListener('scroll', () => {
 document.getElementById('navbar').classList.toggle('scrolled', scrollY > 40);
 });
-new IntersectionObserver((entries) => {
-entries.forEach((e,i) => { if (e.isIntersecting) setTimeout(()=>e.target.classList.add('visible'), i*90); });
-}, {threshold:0.1}).observe || (() => {})();
+/* observer removed - using ro below */
 const ro = new IntersectionObserver((entries) => {
 entries.forEach((e,i) => { if (e.isIntersecting) setTimeout(()=>e.target.classList.add('visible'), i*90); });
 }, {threshold:0.08});
@@ -307,31 +305,31 @@ function keepTxP(id){clearTimeout(_txT[id]);}
 function hideTxP(id){_txT[id]=setTimeout(function(){var p=document.getElementById(id);if(p)p.classList.remove('show');},150);}
 (function(){var cards=document.querySelectorAll('.hsvc');if(!cards.length)return;[150,300,450,600,750].forEach(function(d,i){setTimeout(function(){if(cards[i])cards[i].classList.add('visible');},700+d);});cards.forEach(function(c,i){var amp=5+(i%3)*3,spd=3200+i*350,t0=Date.now()+i*500;(function tick(){if(!c.classList.contains('visible')){requestAnimationFrame(tick);return;}c.style.transform='translateY('+(Math.sin((Date.now()-t0)/spd*Math.PI*2)*amp)+'px)';requestAnimationFrame(tick);})();});})();
 var _txData={
-"01":{title:"Orthopedic",tag:"Speciality 01",color:"#c4622d",bg:"rgba(196,98,45,.25)",img:"images/modal_neurology.webp",
+"01":{title:"Orthopedic",tag:"Speciality 01",color:"#c4622d",bg:"rgba(196,98,45,.25)",img:"images/modal_orthopedic.png",
 icon:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><circle cx="12" cy="5" r="2"/><path d="M12 7v5l3 3"/><path d="M8 21c0-4 2-6 4-6s4 2 4 6"/><path d="M5 12h3M16 12h3"/></svg>`,
 desc:"Our orthopedic team restores movement and strength after injury, surgery or degenerative conditions using manual therapy, targeted exercise and the latest technology.",
 points:["ACL & ligament reconstruction","Joint replacement rehab","Rotator cuff & shoulder","Fracture & bone healing","Tendinopathy & bursitis"]},
-"02":{title:"Neurology",tag:"Speciality 02",color:"#2979d5",bg:"rgba(41,121,213,.25)",img:"images/modal_cardiorespiratory.webp",
+"02":{title:"Neurology",tag:"Speciality 02",color:"#2979d5",bg:"rgba(41,121,213,.25)",img:"images/modal_neurology.webp",
 icon:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M9.5 2c0 2.5 1.5 4.5 3 5.5C11 9 9.5 11 9.5 14s1.5 4.5 3 5.5"/><path d="M14.5 2c0 2.5-1.5 4.5-3 5.5C13 9 14.5 11 14.5 14s-1.5 4.5-3 5.5"/><line x1="12" y1="19.5" x2="12" y2="22"/></svg>`,
 desc:"Neurological physiotherapy retrains the brain and nervous system to regain movement, balance and independence through neuroplasticity-driven rehab.",
 points:["Stroke rehabilitation","Parkinson's disease","Multiple sclerosis","Peripheral nerve injury","Vestibular & balance disorders"]},
-"03":{title:"Cardiorespiratory",tag:"Speciality 03",color:"#1aa0b8",bg:"rgba(26,160,184,.25)",img:"images/modal_elite_sports.webp",
+"03":{title:"Cardiorespiratory",tag:"Speciality 03",color:"#1aa0b8",bg:"rgba(26,160,184,.25)",img:"images/modal_cardiorespiratory.webp",
 icon:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>`,
 desc:"Specialised cardiac and pulmonary rehab helping patients recover from heart conditions, surgery and respiratory diseases — safely rebuilding fitness and quality of life.",
 points:["Post-cardiac surgery rehab","COPD & asthma management","Breathlessness & fatigue","Long COVID recovery","Cardiac fitness programmes"]},
-"04":{title:"Elite Sports",tag:"Speciality 04",color:"#d4a010",bg:"rgba(212,160,16,.25)",img:"images/modal_performance_rehab.webp",
+"04":{title:"Elite Sports",tag:"Speciality 04",color:"#d4a010",bg:"rgba(212,160,16,.25)",img:"images/modal_elite_sports.webp",
 icon:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>`,
 desc:"Our sports physiotherapists manage acute injuries, optimise recovery and implement return-to-sport protocols — keeping elite athletes competing at their best.",
 points:["Return-to-sport testing","Acute sports injury care","Biomechanical analysis","In-season maintenance","Athlete load management"]},
-"05":{title:"Performance Rehab",tag:"Speciality 05",color:"#c4622d",bg:"rgba(196,98,45,.22)",img:"images/modal_pediatric.webp",
+"05":{title:"Performance Rehab",tag:"Speciality 05",color:"#c4622d",bg:"rgba(196,98,45,.22)",img:"images/modal_performance_rehab.webp",
 icon:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>`,
 desc:"Performance rehab bridges clinical recovery and full sport performance with individualised programmes that rebuild strength, power and agility safely.",
 points:["Functional movement screening","Strength & power development","Agility & plyometric rehab","Injury prevention programs","Sport-specific conditioning"]},
-"06":{title:"Pediatric Rehab",tag:"Speciality 06",color:"#2979d5",bg:"rgba(41,121,213,.22)",img:"images/modal_strength.webp",
+"06":{title:"Pediatric Rehab",tag:"Speciality 06",color:"#2979d5",bg:"rgba(41,121,213,.22)",img:"images/modal_pediatric.webp",
 icon:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><circle cx="12" cy="7" r="4"/><path d="M12 11v10"/><path d="M8 15l4 4 4-4"/></svg>`,
 desc:"Play-based, child-centred techniques improve movement, strength and coordination — working closely with families and schools for each child.",
 points:["Cerebral palsy & tone management","Developmental delay","Paediatric orthopaedics","Scoliosis management","Youth sports injuries"]},
-"07":{title:"Strength & Conditioning",tag:"Speciality 07",color:"#1aa0b8",bg:"rgba(26,160,184,.22)",img:"images/team_photo.webp",
+"07":{title:"Strength & Conditioning",tag:"Speciality 07",color:"#1aa0b8",bg:"rgba(26,160,184,.22)",img:"images/modal_strength.webp",
 icon:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M6 4v16M18 4v16M3 8h3M18 8h3M3 16h3M18 16h3M6 12h12"/></svg>`,
 desc:"Open to all — from post-rehab patients to athletes pushing peak performance. Every programme is individually prescribed and therapist-led.",
 points:["Post-rehab strength programs","Injury prevention & screening","Olympic & powerlifting support","Gym-based rehab","Long-term athletic development"]}
@@ -402,3 +400,10 @@ document.getElementById('navLinks').classList.remove('open');
 });
 });
 });
+
+// Failsafe: ensure all reveal elements become visible
+setTimeout(function(){
+  document.querySelectorAll('.reveal,.reveal-left').forEach(function(el){
+    el.classList.add('visible');
+  });
+}, 300);
