@@ -323,7 +323,7 @@ function handleSubmit(e){
   btn.style.background = '#25D366';
   setTimeout(function(){
     window.open(waUrl, '_blank');
-    btn.textContent = 'Book Free Consultation';
+    btn.textContent = 'Book Consultation';
     btn.style.background = '';
     e.target.reset();
   }, 800);
