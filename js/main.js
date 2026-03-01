@@ -317,7 +317,7 @@ function handleSubmit(e){
     '*Speciality:* ' + encodeURIComponent(service) + '%0A' +
     '*Condition:* ' + encodeURIComponent(message);
 
-  var waUrl = 'https://wa.me/919074701547?text=' + text;
+  var waUrl = 'https://wa.me/918089500364?text=' + text;
 
   var btn = document.getElementById('submitBtn');
   btn.textContent = '✓ Redirecting to WhatsApp...';
