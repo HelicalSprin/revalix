@@ -301,10 +301,34 @@ window.addEventListener('load',initBodyMap);
 /* ── FORM ── */
 function handleSubmit(e){
   e.preventDefault();
-  const btn=document.getElementById('submitBtn');
-  btn.textContent="✓ Request Received — We'll be in touch shortly!";
-  btn.style.background='#1d5855';
-  setTimeout(()=>{btn.textContent='Book Free Consultation';btn.style.background='';e.target.reset();},4000);
+  var firstName = (document.getElementById('fFirstName')||{}).value || '';
+  var lastName  = (document.getElementById('fLastName')||{}).value  || '';
+  var phone     = (document.getElementById('fPhone')||{}).value     || '';
+  var email     = (document.getElementById('fEmail')||{}).value     || '';
+  var service   = (document.getElementById('fService')||{}).value   || 'Not specified';
+  var message   = (document.getElementById('fMessage')||{}).value   || '';
+
+  var text = 
+    '*New Appointment Request - Revalix*%0A' +
+    '-----------------------------%0A' +
+    '*Name:* ' + encodeURIComponent(firstName + ' ' + lastName) + '%0A' +
+    '*Phone:* ' + encodeURIComponent(phone) + '%0A' +
+    '*Email:* ' + encodeURIComponent(email) + '%0A' +
+    '*Speciality:* ' + encodeURIComponent(service) + '%0A' +
+    '*Condition:* ' + encodeURIComponent(message);
+
+  var waUrl = 'https://wa.me/919074701547?text=' + text;
+
+  var btn = document.getElementById('submitBtn');
+  btn.textContent = '✓ Redirecting to WhatsApp...';
+  btn.style.background = '#25D366';
+
+  setTimeout(function(){
+    window.open(waUrl, '_blank');
+    btn.textContent = 'Book Free Consultation';
+    btn.style.background = '';
+    e.target.reset();
+  }, 800);
 }
 
 

@@ -666,14 +666,14 @@
     <h3>Book an Appointment</h3>
     <form onsubmit="handleSubmit(event)">
       <div class="form-row">
-        <div class="form-group"><label>First Name</label><input type="text" placeholder="Your first name"></div>
-        <div class="form-group"><label>Last Name</label><input type="text" placeholder="Your last name"></div>
+        <div class="form-group"><label>First Name</label><input id="fFirstName" type="text" placeholder="Your first name" required></div>
+        <div class="form-group"><label>Last Name</label><input id="fLastName" type="text" placeholder="Your last name"></div>
       </div>
-      <div class="form-group"><label>Email Address</label><input type="email" placeholder="you@example.com"></div>
-      <div class="form-group"><label>Phone</label><input type="tel" placeholder="+91 98765 43210"></div>
+      <div class="form-group"><label>Email Address</label><input id="fEmail" type="email" placeholder="you@example.com"></div>
+      <div class="form-group"><label>Phone</label><input id="fPhone" type="tel" placeholder="+91 98765 43210" required></div>
       <div class="form-group">
         <label>Speciality Needed</label>
-        <select>
+        <select id="fService">
           <option value="">Select a speciality</option>
           <option>Orthopedic</option>
           <option>Neurology</option>
@@ -684,7 +684,7 @@
           <option>Strength &amp; Conditioning</option>
         </select>
       </div>
-      <div class="form-group"><label>Tell us about your condition</label><textarea placeholder="Brief description of your injury, pain, or goals..."></textarea></div>
+      <div class="form-group"><label>Tell us about your condition</label><textarea id="fMessage" placeholder="Brief description of your injury, pain, or goals..."></textarea></div>
       <button type="submit" class="btn-submit" id="submitBtn">Book Free Consultation</button>
     </form>
   </div>
