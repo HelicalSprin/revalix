@@ -384,8 +384,8 @@ var _txData={
   points:["Cerebral palsy & tone management","Developmental delay","Paediatric orthopaedics","Scoliosis management","Youth sports injuries"]},
 "07":{title:"Strength & Conditioning",tag:"Speciality 07",color:"#1aa0b8",bg:"rgba(26,160,184,.22)",img:"images/modal_strength.webp",
   icon:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M6 4v16M18 4v16M3 8h3M18 8h3M3 16h3M18 16h3M6 12h12"/></svg>`,
-  desc:"Open to all — from post-rehab patients to athletes pushing peak performance. Every programme is individually prescribed and therapist-led.",
-  points:["Post-rehab strength programs","Injury prevention & screening","Olympic & powerlifting support","Gym-based rehab","Long-term athletic development"]}
+  desc:"Open to all — from post-rehab patients to athletes pushing peak performance. Every programme is individually prescribed and led by Level 7 S&C coach.",
+  points:["Post-rehab strength programs","Injury prevention & screening","Olympic & powerlifting support","Gym-based rehab","Long-term athletic development","Sport specific periodisation and one on one coaching"]}
 };
 function openTxModal(id){
   var d=_txData[id]; if(!d) return;
